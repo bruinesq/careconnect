@@ -280,8 +280,10 @@
       }
       isLoading=false;
       render();
+    }).catch(function(err){
+      isLoading=false;
       showToast('Load error: '+err.message,'error');
-      console.error(err);
+      console.error('loadData error:',err);
     });
   }
 
