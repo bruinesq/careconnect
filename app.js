@@ -182,9 +182,11 @@
       // Settings
       sbGet('settings','select=key,value')
     ]).then(function(results){
+      console.log('loadData step 1: got results');
       var dayLogs=results[0]||[];
       var labLogs=results[1]||[];
       var settings=results[2]||[];
+      console.log('loadData step 2: dayLogs='+dayLogs.length+' labLogs='+labLogs.length+' settings='+settings.length);
       // Debug: log first row to check date format
       if(dayLogs.length>0) console.log('Sample log:',JSON.stringify(dayLogs[0]));
       else console.log('No logs for:',sel);
@@ -278,8 +280,10 @@
         localStorage.setItem('migrated_v2','1');
         saveScheduleToSheet();
       }
+      console.log('loadData step 3: about to render');
       isLoading=false;
       render();
+      console.log('loadData step 4: render called');
     }).catch(function(err){
       isLoading=false;
       showToast('Load error: '+err.message,'error');
@@ -459,9 +463,9 @@
       '</div>';
 
     el.innerHTML=
-      '<div style="background:'+pageBg+';height:calc(100vh - 96px);display:flex;flex-direction:column;padding:10px;overflow:hidden;">'+
+      '<div style="background:'+pageBg+';height:100%;display:flex;flex-direction:column;padding:10px;overflow:hidden;">'+
         cgBarHtml+
-        '<div style="flex:1;overflow-y:auto;overscroll-behavior:none;-webkit-overflow-scrolling:touch;padding-right:2px;">'+scheduleHtml+'</div>'+
+        '<div style="flex:1;min-height:0;overflow-y:scroll;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;padding-right:2px;padding-bottom:16px;">'+scheduleHtml+'</div>'+
       '</div>';
 
     document.getElementById('dash-edit-btn').addEventListener('click',openScheduleEditor);
@@ -930,7 +934,7 @@
     var wPct=Math.min((wTotal/state.waterLimit)*100,100);
 
     el.innerHTML=
-      '<div style="background:#ffbf2b;padding:8px;height:calc(100vh - 96px);display:flex;flex-direction:column;gap:6px;overflow:hidden;box-sizing:border-box;">'+
+      '<div style="background:#ffbf2b;padding:8px;height:100%;display:flex;flex-direction:column;gap:6px;overflow:hidden;box-sizing:border-box;">'+
 
       // ── WATER ─────────────────────────────────────────────────────
       '<div style="background:#1d6fa4;border:1px solid rgba(255,255,255,0.25);border-radius:18px;padding:10px;flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;">'+
@@ -945,7 +949,7 @@
         (wTotal>limitTrigger?'<div style="background:#ef4444;color:#fff;padding:5px;border-radius:8px;font-family:Syne,sans-serif;font-size:11px;font-weight:800;text-align:center;margin-bottom:5px;flex-shrink:0;">⚠️ STOP! OVER LIMIT</div>':'')+
         // Body: log entries + progress bar side by side
         '<div style="display:flex;gap:8px;flex:1;min-height:0;">'+
-          '<div style="flex:1;overflow-y:auto;overscroll-behavior:none;-webkit-overflow-scrolling:touch;">'+
+          '<div style="flex:1;overflow-y:scroll;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;">'+
             waterLogs.map(function(l){return'<div style="'+eStyle+'"><span style="'+eTxt+'">'+l.amount+'</span><span style="'+eSec+'">'+l.time+' · '+l.caregiver+'</span></div>';}).join('')+
           '</div>'+
           // Progress bar — full height
@@ -1041,11 +1045,11 @@
       '</div>';
     }).join('');
     container.innerHTML=
-      '<div style="background:#ffbf2b;display:flex;flex-direction:column;height:calc(100vh - 140px);">'+
+      '<div style="background:#ffbf2b;display:flex;flex-direction:column;height:100%;">'+
         '<div style="padding:10px 14px 5px;flex-shrink:0;">'+
           '<div style="font-family:Syne,sans-serif;font-size:10px;font-weight:800;color:#5a3800;text-transform:uppercase;letter-spacing:0.08em;">📅 '+sel+'</div>'+
         '</div>'+
-        '<div style="flex:1;overflow-y:auto;overscroll-behavior:none;-webkit-overflow-scrolling:touch;padding:0 12px 24px;">'+
+        '<div style="flex:1;overflow-y:scroll;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;padding:0 12px 24px;">'+
           (sourceLogs.length===0
             ?'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:180px;opacity:0.4;"><div style="font-size:48px;margin-bottom:8px;">📋</div><div style="font-family:Syne,sans-serif;font-weight:700;font-style:italic;font-size:14px;color:#2d1a00;">No entries for this date</div></div>'
             :sectionsHtml)+
@@ -1125,7 +1129,7 @@
 
     var navBtnStyle='font-family:Syne,sans-serif;font-weight:800;font-size:11px;color:#2d1a00;border:none;padding:9px 4px;border-radius:12px;flex:1;';
     container.innerHTML=
-      '<div style="background:#ffbf2b;height:calc(100vh - 96px);padding:10px;display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;">'+
+      '<div style="background:#ffbf2b;height:100%;padding:10px;display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;">'+
       // Row 1: ENTER | PREV | NEXT | PDF
       '<div style="display:flex;gap:4px;margin-bottom:4px;flex-shrink:0;">'+
         '<button id="lab-enter-btn" style="'+navBtnStyle+'background:rgba(255,255,255,0.55);">ENTER</button>'+
@@ -1146,7 +1150,7 @@
         '<button id="lab-cal-btn" style="flex:0 0 auto;background:transparent;border:none;padding:0 8px;font-size:22px;cursor:pointer;">🔍</button>'+
       '</div>'+
       (allLabs.length>0?'<div style="font-family:Syne,sans-serif;font-size:9px;font-weight:800;color:#5a3800;text-transform:uppercase;letter-spacing:0.06em;text-align:center;margin-bottom:4px;flex-shrink:0;">Result '+(idx+1)+' of '+allLabs.length+'</div>':'')+
-      '<div style="flex:1;overflow-y:auto;overscroll-behavior:none;-webkit-overflow-scrolling:touch;min-height:0;padding-bottom:8px;">'+labResultsHtml+'</div>'+
+      '<div style="flex:1;overflow-y:scroll;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;min-height:0;padding-bottom:8px;">'+labResultsHtml+'</div>'+
       '</div>';
 
     document.getElementById('lab-enter-btn').addEventListener('click',showLabEntryModal);
