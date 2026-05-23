@@ -8,17 +8,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <style>
-    /* iOS Safari scroll fix */
-    html, body {
-      position: fixed;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-    }
+    /* Simple scroll fix — works in iOS Safari GAS-style */
+    html { height: 100%; }
+    body { height: 100%; overflow: hidden; }
     .scroll-pane {
-      overflow-y: scroll;
+      overflow-y: auto;
       -webkit-overflow-scrolling: touch;
-      overscroll-behavior-y: contain;
     }
     @keyframes pulse-dot {
       0%,100% { r:3; opacity:1; }
@@ -65,7 +60,7 @@
     </div>
   </header>
 
-  <main id="view-container" style="position:fixed;top:56px;left:0;right:0;bottom:52px;overflow:hidden;"></main>
+  <main id="view-container" style="height:calc(100vh - 96px);overflow:hidden;"></main>
 
   <nav id="main-nav" style="position:fixed;bottom:0;left:0;right:0;background:#1e293b;display:flex;justify-content:space-around;align-items:center;height:52px;z-index:50;border-top:1px solid #334155;">
     <button id="btn-meds"   style="display:flex;flex-direction:column;align-items:center;font-size:9px;font-family:Syne,sans-serif;font-weight:700;color:#64748b;gap:1px;padding:0 8px;">💊<span>MEDS</span></button>
