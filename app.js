@@ -1,5 +1,4 @@
-
-  // ─── CONSTANTS ───────────────────────────────────────────────────────────
+// ─── CONSTANTS ───────────────────────────────────────────────────────────
   const LAB_REF = {
     "Sodium":          {min:135,  max:145,  unit:"mmol/L", rec:"Critical for hydration. If low, consider sodium levels."},
     "Potassium":       {min:3.5,  max:5.2,  unit:"mEq/L",  rec:"Monitor for heart rhythm or muscle weakness."},
@@ -183,12 +182,32 @@
       var dayLogs=results[0]||[];
       var labLogs=results[1]||[];
       var settings=results[2]||[];
+      // Debug: log first row to check date format
+      if(dayLogs.length>0) console.log('Sample log:',JSON.stringify(dayLogs[0]));
+      else console.log('No logs for:',sel);
+
+      // Normalize all log dates to YYYY-MM-DD string format
+      function normalizeDate(val) {
+        if (!val) return '';
+        if (typeof val === 'string') {
+          // Handle ISO format: 2026-05-13T07:00:00+00:00 → 2026-05-13
+          return val.substring(0, 10);
+        }
+        if (val instanceof Date) {
+          return val.getFullYear()+'-'+String(val.getMonth()+1).padStart(2,'0')+'-'+String(val.getDate()).padStart(2,'0');
+        }
+        return val.toString().substring(0, 10);
+      }
 
       // Merge: day logs + lab logs (deduplicate by id)
       var seen={};
       var allLogs=[];
       dayLogs.concat(labLogs).forEach(function(l){
-        if(!seen[l.id]){seen[l.id]=true;allLogs.push(l);}
+        if(!seen[l.id]){
+          seen[l.id]=true;
+          l.date=normalizeDate(l.date); // normalize date field
+          allLogs.push(l);
+        }
       });
       state.allLogs=allLogs;
 
@@ -1379,4 +1398,3 @@
     render();
   }
   function deleteLog(id){confirmDelete(id);}
-
