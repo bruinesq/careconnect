@@ -936,9 +936,8 @@
     el.innerHTML=
       '<div style="background:#ffbf2b;padding:8px;height:calc(100vh - 96px);display:flex;flex-direction:column;gap:6px;overflow:hidden;box-sizing:border-box;">'+
 
-      // ── WATER ─────────────────────────────────────────────────────
-      '<div style="background:#1d6fa4;border:1px solid rgba(255,255,255,0.25);border-radius:18px;padding:10px;flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;">'+
-        // Header row: label + total + LIMIT button
+      // ── WATER — flex:1 but with min/max constraints ────────────────
+      '<div style="background:#1d6fa4;border:1px solid rgba(255,255,255,0.25);border-radius:18px;padding:10px;flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;">'+
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-shrink:0;">'+
           '<div>'+
             '<div style="font-family:Syne,sans-serif;font-size:11px;font-weight:800;color:rgba(255,255,255,0.80);text-transform:uppercase;letter-spacing:0.08em;">Water</div>'+
@@ -947,14 +946,12 @@
           '<button id="limit-btn" style="background:rgba(255,255,255,0.25);color:#fff;border:none;border-radius:8px;font-family:Syne,sans-serif;font-size:10px;font-weight:800;padding:4px 10px;">LIMIT</button>'+
         '</div>'+
         (wTotal>limitTrigger?'<div style="background:#ef4444;color:#fff;padding:5px;border-radius:8px;font-family:Syne,sans-serif;font-size:11px;font-weight:800;text-align:center;margin-bottom:5px;flex-shrink:0;">⚠️ STOP! OVER LIMIT</div>':'')+
-        // Body: log entries + progress bar side by side
         '<div style="display:flex;gap:8px;flex:1;min-height:0;">'+
-          '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;">'+
+          '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0;">'+
             waterLogs.map(function(l){return'<div style="'+eStyle+'"><span style="'+eTxt+'">'+l.amount+'</span><span style="'+eSec+'">'+l.time+' · '+l.caregiver+'</span></div>';}).join('')+
           '</div>'+
-          // Progress bar — full height
           '<div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0;">'+
-            '<div style="flex:1;width:22px;background:rgba(255,255,255,0.18);border-radius:11px;overflow:hidden;position:relative;min-height:60px;">'+
+            '<div style="flex:1;width:22px;background:rgba(255,255,255,0.18);border-radius:11px;overflow:hidden;position:relative;min-height:40px;">'+
               '<div style="position:absolute;bottom:0;width:100%;background:rgba(255,255,255,0.80);border-radius:11px;height:'+wPct+'%;transition:height 0.5s;"></div>'+
             '</div>'+
             '<button id="water-add" style="background:rgba(255,255,255,0.25);color:#fff;border:none;border-radius:50%;width:36px;height:36px;font-size:20px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;">＋</button>'+
@@ -962,8 +959,8 @@
         '</div>'+
       '</div>'+
 
-      // ── URINE ─────────────────────────────────────────────────────
-      '<div style="background:#b45309;border:1px solid rgba(255,200,100,0.25);border-radius:18px;padding:10px;flex:0 0 auto;overflow:hidden;">'+
+      // ── URINE — fixed height ───────────────────────────────────────
+      '<div style="background:#b45309;border:1px solid rgba(255,200,100,0.25);border-radius:18px;padding:10px;flex:0 0 110px;overflow:hidden;">'+
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">'+
           '<div>'+
             '<div style="font-family:Syne,sans-serif;font-size:11px;font-weight:800;color:rgba(255,255,255,0.80);text-transform:uppercase;letter-spacing:0.08em;">Urine</div>'+
@@ -975,8 +972,8 @@
         (urineLogs.length>2?'<div style="font-family:Syne,sans-serif;font-size:10px;color:rgba(255,255,255,0.8);text-align:center;padding-top:2px;">+'+(urineLogs.length-2)+' more — see Logs</div>':'')+
       '</div>'+
 
-      // ── BM ────────────────────────────────────────────────────────
-      '<div style="background:#7c3f2a;border:1px solid rgba(255,160,100,0.20);border-radius:18px;padding:10px;flex:0 0 auto;">'+
+      // ── BM — fixed height ──────────────────────────────────────────
+      '<div style="background:#7c3f2a;border:1px solid rgba(255,160,100,0.20);border-radius:18px;padding:10px;flex:0 0 72px;overflow:hidden;">'+
         '<div style="display:flex;justify-content:space-between;align-items:center;">'+
           '<div style="flex:1;">'+
             '<div style="font-family:Syne,sans-serif;font-size:11px;font-weight:800;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px;">BM Events</div>'+
