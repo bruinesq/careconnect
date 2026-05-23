@@ -960,7 +960,7 @@
       '</div>'+
 
       // ── URINE — fixed height ───────────────────────────────────────
-      '<div style="background:#b45309;border:1px solid rgba(255,200,100,0.25);border-radius:18px;padding:10px;flex:0 0 105px;overflow:hidden;">'+
+      '<div style="background:#b45309;border:1px solid rgba(255,200,100,0.25);border-radius:18px;padding:10px;flex:0 0 115px;overflow:hidden;">'+
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">'+
           '<div>'+
             '<div style="font-family:Syne,sans-serif;font-size:11px;font-weight:800;color:rgba(255,255,255,0.80);text-transform:uppercase;letter-spacing:0.08em;">Urine</div>'+
@@ -973,7 +973,7 @@
       '</div>'+
 
       // ── BM — fixed height ──────────────────────────────────────────
-      '<div style="background:#7c3f2a;border:1px solid rgba(255,160,100,0.20);border-radius:18px;padding:10px;flex:0 0 90px;overflow:hidden;">'+
+      '<div style="background:#7c3f2a;border:1px solid rgba(255,160,100,0.20);border-radius:18px;padding:10px;flex:0 0 100px;overflow:hidden;">'+
         '<div style="display:flex;justify-content:space-between;align-items:center;">'+
           '<div style="flex:1;">'+
             '<div style="font-family:Syne,sans-serif;font-size:11px;font-weight:800;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px;">BM Events</div>'+
