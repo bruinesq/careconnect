@@ -463,8 +463,8 @@
       '</div>';
 
     el.innerHTML=
-      '<div style="background:'+pageBg+';height:calc(100vh - 140px);display:flex;flex-direction:column;padding:10px;overflow:hidden;">'+
-        cgBarHtml+
+      '<div style="background:'+pageBg+';height:100%;display:flex;flex-direction:column;padding:10px;overflow:hidden;box-sizing:border-box;">'+
+        '<div style="flex-shrink:0;">'+cgBarHtml+'</div>'+
         '<div style="flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-right:2px;padding-bottom:16px;">'+scheduleHtml+'</div>'+
       '</div>';
 
@@ -934,7 +934,7 @@
     var wPct=Math.min((wTotal/state.waterLimit)*100,100);
 
     el.innerHTML=
-      '<div style="background:#ffbf2b;padding:8px;height:calc(100vh - 140px);display:flex;flex-direction:column;gap:6px;overflow:hidden;box-sizing:border-box;">'+
+      '<div style="background:#ffbf2b;padding:8px;height:100%;display:flex;flex-direction:column;gap:6px;overflow:hidden;box-sizing:border-box;">'+
 
       // ── WATER — flex:1 but with min/max constraints ────────────────
       '<div style="background:#1d6fa4;border:1px solid rgba(255,255,255,0.25);border-radius:18px;padding:10px;flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;">'+
@@ -1042,7 +1042,7 @@
       '</div>';
     }).join('');
     container.innerHTML=
-      '<div style="background:#ffbf2b;display:flex;flex-direction:column;height:calc(100vh - 140px);">'+
+      '<div style="background:#ffbf2b;display:flex;flex-direction:column;height:100%;">'+
         '<div style="padding:10px 14px 5px;flex-shrink:0;">'+
           '<div style="font-family:Syne,sans-serif;font-size:10px;font-weight:800;color:#5a3800;text-transform:uppercase;letter-spacing:0.08em;">📅 '+sel+'</div>'+
         '</div>'+
@@ -1126,7 +1126,7 @@
 
     var navBtnStyle='font-family:Syne,sans-serif;font-weight:800;font-size:11px;color:#2d1a00;border:none;padding:9px 4px;border-radius:12px;flex:1;';
     container.innerHTML=
-      '<div style="background:#ffbf2b;height:calc(100vh - 140px);padding:10px;display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;">'+
+      '<div style="background:#ffbf2b;height:100%;padding:10px;display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;">'+
       // Row 1: ENTER | PREV | NEXT | PDF
       '<div style="display:flex;gap:4px;margin-bottom:4px;flex-shrink:0;">'+
         '<button id="lab-enter-btn" style="'+navBtnStyle+'background:rgba(255,255,255,0.55);">ENTER</button>'+
