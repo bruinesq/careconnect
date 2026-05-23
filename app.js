@@ -350,13 +350,17 @@
       return logs.find(function(l){
         var amt=(l.amount||'').toLowerCase();
         var ltype=(l.type||'').toLowerCase();
+        var lmeta=(l.metadata||'').toLowerCase();
+        var gmeta=group.toLowerCase();
         if(state.category==='Meds'){
-          if(item==='Juice')return (ltype==='water')&&amt.includes('juice')&&l.metadata===group;
-          // Accept Medication, Meds, medication, meds
+          if(item==='Juice')return (ltype==='water')&&amt.includes('juice');
           var isMedType=ltype==='medication'||ltype==='meds';
-          return isMedType&&amt.includes(itm)&&l.metadata===group;
+          if(!isMedType) return false;
+          if(!amt.includes(itm)) return false;
+          // Match metadata if both present, otherwise just match on amount
+          if(lmeta&&gmeta) return lmeta===gmeta;
+          return true;
         }else{
-          // Accept Routine, Tasks, routine, tasks
           var isTaskType=ltype==='routine'||ltype==='tasks';
           return isTaskType&&amt.includes(itm);
         }
