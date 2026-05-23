@@ -329,8 +329,10 @@
 
   // ─── DASH ────────────────────────────────────────────────────────────────
   function renderDash(el,logs){
+    try {
     var sk=state.category.toLowerCase(); // 'meds' or 'tasks'
     var schedule=state[sk];
+    console.log('renderDash: sk='+sk+' schedule='+JSON.stringify(schedule).substring(0,100));
     // Guard: if schedule not yet loaded, show loading state
     if(!schedule){
       el.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:200px;opacity:0.4;font-weight:700;font-size:14px;">Loading…</div>';
@@ -466,6 +468,10 @@
         render();
       });
     });
+    } catch(err) {
+      console.error('renderDash error:', err);
+      el.innerHTML='<div style="padding:20px;color:red;font-size:12px;word-break:break-all;">renderDash error: '+err.message+'<br>'+err.stack+'</div>';
+    }
   }
 
   function dragStart(e,sk,group,idx){state.dragSrc={sk:sk,group:group,idx:idx};e.dataTransfer.effectAllowed='move';}
