@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Ryan's CareConnect</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    @keyframes pulse-dot {
+      0%,100% { r:3; opacity:1; }
+      50%      { r:6; opacity:0.35; }
+    }
+    @keyframes draw-pulse {
+      0%   { stroke-dashoffset:120; }
+      60%  { stroke-dashoffset:0; }
+      100% { stroke-dashoffset:0; }
+    }
+    @keyframes pulse-line-opacity {
+      0%  { opacity:1; } 75% { opacity:1; }
+      85% { opacity:0; } 86% { opacity:0; }
+      100%{ opacity:1; }
+    }
+    .pulse-line {
+      stroke-dasharray:120;
+      stroke-dashoffset:120;
+      animation: draw-pulse 4.2s ease-out infinite, pulse-line-opacity 4.2s ease-out infinite;
+    }
+    .pulse-dot { animation: pulse-dot 4.2s ease-in-out infinite; }
+  </style>
+</head>
+<body style="background:#f1f5f9;padding-bottom:52px;overflow:hidden;height:100vh;">
+
+  <header style="background:white;padding:6px 12px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,0.08);border-bottom:1px solid #e2e8f0;position:sticky;top:0;z-index:40;">
+    <div style="display:flex;align-items:center;flex:1;">
+      <div style="line-height:1.15;flex-shrink:0;">
+        <div style="font-size:16px;font-weight:900;letter-spacing:0.03em;color:#1e40af;">RYAN'S</div>
+        <div style="font-size:16px;font-weight:900;letter-spacing:0.03em;color:#2563eb;">CARECONNECT</div>
+      </div>
+      <div style="position:relative;width:72px;height:32px;flex-shrink:0;margin-left:4px;">
+        <svg viewBox="0 0 80 36" style="width:100%;height:100%;overflow:visible;">
+          <polyline class="pulse-line"
+            points="0,18 8,18 13,8 18,28 23,12 28,18 38,18 44,6 50,30 56,18 64,18 68,11 72,25 76,18 80,18"
+            fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle class="pulse-dot" cx="80" cy="18" r="3" fill="#ef4444"/>
+        </svg>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;flex-shrink:0;">
+      <input type="date" id="date-navigator"
+        style="font-weight:800;font-size:11px;color:#2563eb;background:transparent;outline:none;border:none;max-width:110px;">
+    </div>
+  </header>
+
+  <main id="view-container" style="height:calc(100vh - 96px);overflow:hidden;"></main>
+
+  <nav id="main-nav" style="position:fixed;bottom:0;left:0;right:0;background:#1e293b;display:flex;justify-content:space-around;align-items:center;height:52px;z-index:50;border-top:1px solid #334155;">
+    <button id="btn-meds"   style="display:flex;flex-direction:column;align-items:center;font-size:9px;font-family:Syne,sans-serif;font-weight:700;color:#64748b;gap:1px;padding:0 8px;">💊<span>MEDS</span></button>
+    <button id="btn-tasks"  style="display:flex;flex-direction:column;align-items:center;font-size:9px;font-family:Syne,sans-serif;font-weight:700;color:#64748b;gap:1px;padding:0 8px;">✅<span>TASKS</span></button>
+    <button id="btn-fluids" style="display:flex;flex-direction:column;align-items:center;font-size:9px;font-family:Syne,sans-serif;font-weight:700;color:#64748b;gap:1px;padding:0 8px;">💧<span>IN-OUT</span></button>
+    <button id="btn-logs"   style="display:flex;flex-direction:column;align-items:center;font-size:9px;font-family:Syne,sans-serif;font-weight:700;color:#64748b;gap:1px;padding:0 8px;">📋<span>LOGS</span></button>
+    <button id="btn-labs"   style="display:flex;flex-direction:column;align-items:center;font-size:9px;font-family:Syne,sans-serif;font-weight:700;color:#64748b;gap:1px;padding:0 8px;">🔬<span>LABS</span></button>
+  </nav>
+
+  <div id="modal-container"></div>
+  <div id="trend-container"></div>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
