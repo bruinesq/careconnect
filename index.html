@@ -8,13 +8,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <style>
-    /* Simple scroll fix — works in iOS Safari GAS-style */
-    html { height: 100%; }
-    body { height: 100%; overflow: hidden; }
-    .scroll-pane {
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-    }
+    html, body { height: 100%; overflow: hidden; touch-action: pan-x pan-y; }
+    .scroll-pane { overflow-y: auto; -webkit-overflow-scrolling: touch; }
     @keyframes pulse-dot {
       0%,100% { r:3; opacity:1; }
       50%      { r:6; opacity:0.35; }
@@ -39,7 +34,7 @@
 </head>
 <body style="background:#f1f5f9;padding-bottom:52px;overflow:hidden;height:100vh;">
 
-  <header style="background:white;padding:6px 12px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,0.08);border-bottom:1px solid #e2e8f0;position:sticky;top:0;z-index:40;">
+  <header style="position:fixed;top:0;left:0;right:0;background:white;padding:6px 12px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,0.08);border-bottom:1px solid #e2e8f0;z-index:40;height:44px;">
     <div style="display:flex;align-items:center;flex:1;">
       <div style="line-height:1.15;flex-shrink:0;">
         <div style="font-size:16px;font-weight:900;letter-spacing:0.03em;color:#1e40af;">RYAN'S</div>
@@ -60,7 +55,7 @@
     </div>
   </header>
 
-  <main id="view-container" style="height:calc(100vh - 140px);overflow:hidden;"></main>
+  <main id="view-container" style="position:fixed;top:44px;left:0;right:0;bottom:52px;overflow:hidden;"></main>
 
   <nav id="main-nav" style="position:fixed;bottom:0;left:0;right:0;background:#1e293b;display:flex;justify-content:space-around;align-items:center;height:52px;z-index:50;border-top:1px solid #334155;">
     <button id="btn-meds"   style="display:flex;flex-direction:column;align-items:center;font-size:9px;font-family:Syne,sans-serif;font-weight:700;color:#64748b;gap:1px;padding:0 8px;">💊<span>MEDS</span></button>
