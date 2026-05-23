@@ -465,7 +465,7 @@
     el.innerHTML=
       '<div style="background:'+pageBg+';height:100%;display:flex;flex-direction:column;padding:10px;overflow:hidden;box-sizing:border-box;">'+
         '<div style="flex-shrink:0;">'+cgBarHtml+'</div>'+
-        '<div style="flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-right:2px;padding-bottom:16px;">'+scheduleHtml+'</div>'+
+        '<div style="flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:none;padding-right:2px;padding-bottom:16px;">'+scheduleHtml+'</div>'+
       '</div>';
 
     document.getElementById('dash-edit-btn').addEventListener('click',openScheduleEditor);
@@ -947,7 +947,7 @@
         '</div>'+
         (wTotal>limitTrigger?'<div style="background:#ef4444;color:#fff;padding:5px;border-radius:8px;font-family:Syne,sans-serif;font-size:11px;font-weight:800;text-align:center;margin-bottom:5px;flex-shrink:0;">⚠️ STOP! OVER LIMIT</div>':'')+
         '<div style="display:flex;gap:8px;flex:1;min-height:0;">'+
-          '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0;">'+
+          '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:none;min-height:0;">'+
             waterLogs.map(function(l){return'<div style="'+eStyle+'"><span style="'+eTxt+'">'+l.amount+'</span><span style="'+eSec+'">'+l.time+' · '+l.caregiver+'</span></div>';}).join('')+
           '</div>'+
           '<div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0;">'+
@@ -1046,7 +1046,7 @@
         '<div style="padding:10px 14px 5px;flex-shrink:0;">'+
           '<div style="font-family:Syne,sans-serif;font-size:10px;font-weight:800;color:#5a3800;text-transform:uppercase;letter-spacing:0.08em;">📅 '+sel+'</div>'+
         '</div>'+
-        '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 12px 24px;">'+
+        '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:none;padding:0 12px 24px;">'+
           (sourceLogs.length===0
             ?'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:180px;opacity:0.4;"><div style="font-size:48px;margin-bottom:8px;">📋</div><div style="font-family:Syne,sans-serif;font-weight:700;font-style:italic;font-size:14px;color:#2d1a00;">No entries for this date</div></div>'
             :sectionsHtml)+
@@ -1147,7 +1147,7 @@
         '<button id="lab-cal-btn" style="flex:0 0 auto;background:transparent;border:none;padding:0 8px;font-size:22px;cursor:pointer;">🔍</button>'+
       '</div>'+
       (allLabs.length>0?'<div style="font-family:Syne,sans-serif;font-size:9px;font-weight:800;color:#5a3800;text-transform:uppercase;letter-spacing:0.06em;text-align:center;margin-bottom:4px;flex-shrink:0;">Result '+(idx+1)+' of '+allLabs.length+'</div>':'')+
-      '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0;padding-bottom:8px;">'+labResultsHtml+'</div>'+
+      '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:none;min-height:0;padding-bottom:8px;">'+labResultsHtml+'</div>'+
       '</div>';
 
     document.getElementById('lab-enter-btn').addEventListener('click',showLabEntryModal);
@@ -1403,14 +1403,14 @@
 
   // ─── UTILITIES ───────────────────────────────────────────────────────────
   function triggerPdfExport(){
-    showToast('Generating report…','info');
-    fetch(GAS_PDF_URL+'?action=generateReport')
-      .then(function(r){return r.json();})
-      .then(function(result){
-        if(result.error){showToast('Report error','error');return;}
-        showToast('Report saved to Logs ✓','success');state.view='logs';loadData();
-      })
-      .catch(function(e){showToast('Report failed','error');console.error(e);});
+    showToast('Generating report — this takes ~15 seconds…','info');
+    // Open GAS in new tab to bypass CORS — GAS generates PDF and logs to Supabase
+    window.open(GAS_PDF_URL + '?action=generateReport', '_blank');
+    // Refresh logs after delay to show the new report entry
+    setTimeout(function(){
+      loadData();
+      showToast('Check Logs for the new report ✓','success');
+    }, 18000);
   }
 
   function changeLimit(){
