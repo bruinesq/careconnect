@@ -165,7 +165,10 @@
     return h+':'+(m<10?'0':'')+m+' '+ap;
   }
 
+  var isLoading=false;
   function loadData(){
+    if(isLoading) return;
+    isLoading=true;
     var sel=document.getElementById('date-navigator').value;
     // Fetch logs for selected date + lab logs from past 60 days
     var labCutoff=new Date();labCutoff.setDate(labCutoff.getDate()-60);
@@ -275,8 +278,8 @@
         localStorage.setItem('migrated_v2','1');
         saveScheduleToSheet();
       }
+      isLoading=false;
       render();
-    }).catch(function(err){
       showToast('Load error: '+err.message,'error');
       console.error(err);
     });
@@ -313,6 +316,7 @@
     var sel=document.getElementById('date-navigator').value;
     var logs=state.allLogs.filter(function(l){return l.date===sel;});
     var c=document.getElementById('view-container');if(!c)return;
+    console.log('render: view='+state.view+' category='+state.category+' logs='+logs.length);
     ['meds','tasks','fluids','logs','labs','dash'].forEach(function(t){
       var b=document.getElementById('btn-'+t);if(!b)return;
       var active=(t==='meds'  && state.view==='dash' && state.category==='Meds')
