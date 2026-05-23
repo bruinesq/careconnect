@@ -238,13 +238,20 @@
       }
 
       // Schedule
+      console.log('Settings keys:', Object.keys(settingsMap));
+      console.log('Schedule raw:', settingsMap['schedule']);
       if(settingsMap['schedule']){
         try{
           var sched=JSON.parse(settingsMap['schedule']);
+          console.log('Schedule parsed:', JSON.stringify(sched).substring(0,200));
           if(sched.meds) state.meds=sched.meds;
           if(sched.routine&&!sched.tasks) state.tasks=sched.routine;
           else if(sched.tasks) state.tasks=sched.tasks;
-        }catch(e){}
+        }catch(e){
+          console.error('Schedule parse error:',e);
+        }
+      } else {
+        console.log('No schedule in settings — using defaults');
       }
 
       // One-time 6AM order migration
@@ -342,10 +349,17 @@
       var itm=item.toLowerCase().split('/')[0].trim();
       return logs.find(function(l){
         var amt=(l.amount||'').toLowerCase();
+        var ltype=(l.type||'').toLowerCase();
         if(state.category==='Meds'){
-          if(item==='Juice')return l.type==='Water'&&amt.includes('juice')&&l.metadata===group;
-          return l.type==='Medication'&&amt.includes(itm)&&l.metadata===group;
-        }else return (l.type==='Routine'||l.type==='Tasks')&&amt.includes(itm);
+          if(item==='Juice')return (ltype==='water')&&amt.includes('juice')&&l.metadata===group;
+          // Accept Medication, Meds, medication, meds
+          var isMedType=ltype==='medication'||ltype==='meds';
+          return isMedType&&amt.includes(itm)&&l.metadata===group;
+        }else{
+          // Accept Routine, Tasks, routine, tasks
+          var isTaskType=ltype==='routine'||ltype==='tasks';
+          return isTaskType&&amt.includes(itm);
+        }
       });
     }
 
@@ -970,7 +984,14 @@
     var categoryOrder=['Medication','Routine','Water','Urine','BM','Labs','Report'];
     var sectionsHtml=categoryOrder.map(function(type){
       var cfg=CAT_CONFIG[type];
-      var entries=sourceLogs.filter(function(l){return l.type===type;});
+      var entries=sourceLogs.filter(function(l){
+        var lt=(l.type||'').toLowerCase();
+        var tt=type.toLowerCase();
+        // Match Medication/Meds, Routine/Tasks flexibly
+        if(tt==='medication') return lt==='medication'||lt==='meds';
+        if(tt==='routine') return lt==='routine'||lt==='tasks';
+        return lt===tt;
+      });
       if(!entries.length)return'';
       var entriesHtml=entries.map(function(l){
         var subDetail='';
