@@ -934,10 +934,10 @@
     var wPct=Math.min((wTotal/state.waterLimit)*100,100);
 
     el.innerHTML=
-      '<div style="background:#ffbf2b;padding:8px;height:100%;display:flex;flex-direction:column;gap:6px;overflow:hidden;box-sizing:border-box;">'+
+      '<div style="background:#1d6fa4;padding:0;height:100%;display:flex;flex-direction:column;gap:0;overflow:hidden;box-sizing:border-box;">'+
 
-      // ── WATER — flex:1 but with min/max constraints ────────────────
-      '<div style="background:#1d6fa4;border:1px solid rgba(255,255,255,0.25);border-radius:18px;padding:10px;flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;">'+
+      // ── WATER ─────────────────────────────────────────────────────
+      '<div style="background:#1d6fa4;padding:10px 10px 8px;flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;">'+
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-shrink:0;">'+
           '<div>'+
             '<div style="font-family:Syne,sans-serif;font-size:11px;font-weight:800;color:rgba(255,255,255,0.80);text-transform:uppercase;letter-spacing:0.08em;">Water</div>'+
@@ -959,30 +959,28 @@
         '</div>'+
       '</div>'+
 
-      // ── URINE — fixed height ───────────────────────────────────────
-      '<div style="background:#b45309;border:1px solid rgba(255,200,100,0.25);border-radius:18px;padding:10px;flex:0 0 115px;overflow:hidden;">'+
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">'+
-          '<div>'+
+      // ── URINE — exactly 2 rows: header row (44px) + 2 entry rows (30px each) = 104px
+      '<div style="background:#b45309;padding:8px 10px;flex:0 0 120px;overflow:hidden;">'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'+
+          '<div style="display:flex;align-items:baseline;gap:8px;">'+
             '<div style="font-family:Syne,sans-serif;font-size:11px;font-weight:800;color:rgba(255,255,255,0.80);text-transform:uppercase;letter-spacing:0.08em;">Urine</div>'+
-            '<div style="font-family:DM Mono,monospace;font-size:17px;font-weight:500;color:#fff;">'+uTotal+' ml</div>'+
+            '<div style="font-family:DM Mono,monospace;font-size:15px;font-weight:500;color:#fff;">'+uTotal+' ml</div>'+
           '</div>'+
-          '<button id="urine-add" style="background:rgba(255,255,255,0.25);color:#fff;border:none;border-radius:50%;width:32px;height:32px;font-size:18px;font-weight:900;display:flex;align-items:center;justify-content:center;">＋</button>'+
+          '<button id="urine-add" style="background:rgba(255,255,255,0.25);color:#fff;border:none;border-radius:50%;width:30px;height:30px;font-size:16px;font-weight:900;display:flex;align-items:center;justify-content:center;">＋</button>'+
         '</div>'+
         urineLogs.slice(0,2).map(function(l){return'<div style="'+eStyle+'"><span style="'+eTxt+'">'+l.amount+'</span><span style="'+eSec+'">'+l.time+' · '+l.caregiver+'</span></div>';}).join('')+
-        (urineLogs.length>2?'<div style="font-family:Syne,sans-serif;font-size:10px;color:rgba(255,255,255,0.8);text-align:center;padding-top:2px;">+'+(urineLogs.length-2)+' more — see Logs</div>':'')+
+        (urineLogs.length>2?'<div style="font-family:Syne,sans-serif;font-size:9px;color:rgba(255,255,255,0.7);text-align:center;">+'+(urineLogs.length-2)+' more</div>':'')+
       '</div>'+
 
-      // ── BM — fixed height ──────────────────────────────────────────
-      '<div style="background:#7c3f2a;border:1px solid rgba(255,160,100,0.20);border-radius:18px;padding:10px;flex:0 0 100px;overflow:hidden;">'+
-        '<div style="display:flex;justify-content:space-between;align-items:center;">'+
-          '<div style="flex:1;">'+
-            '<div style="font-family:Syne,sans-serif;font-size:11px;font-weight:800;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px;">BM Events</div>'+
-            '<div style="display:flex;align-items:center;">'+
-              '<span style="font-family:DM Mono,monospace;font-size:17px;font-weight:500;color:#fff;margin-right:20px;">'+bmLogs.length+'</span>'+
-              bmDetail+
-            '</div>'+
-          '</div>'+
-          '<button id="bm-add" style="background:rgba(255,255,255,0.25);color:#fff;border:none;border-radius:50%;width:32px;height:32px;font-size:18px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;">＋</button>'+
+      // ── BM — exactly 1 row: label + count on same line
+      '<div style="background:#7c3f2a;padding:8px 10px;flex:0 0 64px;overflow:hidden;">'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'+
+          '<div style="font-family:Syne,sans-serif;font-size:11px;font-weight:800;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.08em;">BM Events</div>'+
+          '<button id="bm-add" style="background:rgba(255,255,255,0.25);color:#fff;border:none;border-radius:50%;width:30px;height:30px;font-size:16px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;">＋</button>'+
+        '</div>'+
+        '<div style="display:flex;align-items:center;">'+
+          '<span style="font-family:DM Mono,monospace;font-size:17px;font-weight:500;color:#fff;margin-right:20px;">'+bmLogs.length+'</span>'+
+          bmDetail+
         '</div>'+
       '</div>'+
       '</div>';
