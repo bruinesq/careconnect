@@ -331,7 +331,7 @@
               ||(t==='tasks'  && state.view==='dash' && state.category==='Tasks')
               ||(t==='dash'   && state.view==='dash')
               ||(t===state.view && state.view!=='dash');
-      b.style.color=active?'#f5c842':'#3a4a6a';
+      b.style.color=active?(state.view==='dash'&&state.category==='Meds'?'#f5c842':'#fde68a'):(state.view==='dash'&&state.category==='Meds'?'#2a3a5a':'#1a3a3a');
     });
     if(state.view==='dash')renderDash(c,logs);
     else if(state.view==='fluids')renderInOutput(c,logs);
@@ -419,19 +419,19 @@
 
       var allDone=doneGroups.indexOf(group)!==-1;
       var isMedsView=state.category==='Meds';
-      var hdrColor=allDone?'rgba(56,232,255,0.40)':'#38e8ff';
-      var hdrBorder=allDone?'rgba(56,232,255,0.25)':'#38e8ff';
+      var hdrColor=isMedsView?(allDone?'rgba(56,232,255,0.40)':'#38e8ff'):(allDone?'rgba(253,230,138,0.40)':'#fde68a');
+      var hdrBorder=isMedsView?(allDone?'rgba(56,232,255,0.25)':'#38e8ff'):(allDone?'rgba(253,230,138,0.25)':'#fde68a');
       return '<div style="font-family:Syne,sans-serif;font-size:10px;font-weight:800;color:'+hdrColor+';text-transform:uppercase;letter-spacing:0.10em;margin:10px 0 4px 2px;padding-left:8px;border-left:3px solid '+hdrBorder+';">'+group+(allDone?' ✓':'')+'</div>'+rowsHtml;
     }).join('');
 
     var isProxy=state.caregiver!==state.deviceCG;
     var isMedsView=state.category==='Meds';
-    var pageBg='linear-gradient(160deg,#1a3a8f 0%,#2251c5 50%,#1a2d6e 100%)';
+    var pageBg=isMedsView?'linear-gradient(180deg,#1a3a8f 0%,#2251c5 40%,#2e6fd9 75%,#3d82e0 100%)':'linear-gradient(160deg,#0e7490 0%,#0891b2 50%,#0e6989 100%)';
     var cgBarBg='rgba(255,255,255,0.10)';
     var cgBarBorder='rgba(255,255,255,0.18)';
     var logAsColor='rgba(255,255,255,0.80)';
     var proxyColor='#f5c842';
-    var cgActiveBg='#f5c842';
+    var cgActiveBg=isMedsView?'#f5c842':'#fde68a';
     var cgActiveColor='#1a1a00';
     var cgInactiveBg=isMedsView?'rgba(255,255,255,0.12)':'rgba(45,26,0,0.08)';
     var cgInactiveColor='rgba(255,255,255,0.75)';
@@ -447,7 +447,7 @@
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'+
           '<div style="display:flex;align-items:center;gap:6px;">'+
             '<span style="font-family:Syne,sans-serif;font-size:11px;font-weight:800;color:'+(isProxy?proxyColor:logAsColor)+';text-transform:uppercase;letter-spacing:0.06em;">'+(isProxy?'⚠️ PROXY':'USER')+'</span>'+
-            '<button id="dash-edit-btn" style="background:'+cgActiveBg+';color:'+cgActiveColor+';border:none;border-radius:50%;width:22px;height:22px;font-size:11px;display:flex;align-items:center;justify-content:center;">✏️</button>'+
+            '<button id="dash-edit-btn" style="background:none;border:none;font-size:16px;padding:0;line-height:1;">✏️</button>'+
           '</div>'+
           '<button id="travel-btn" style="font-size:16px;background:none;border:none;padding:0;'+(state.offset!==0?'filter:sepia(1) saturate(4) brightness(1.4);':'filter:grayscale(1) brightness(2);opacity:0.7;')+'">✈️</button>'+
         '</div>'+
@@ -1035,8 +1035,8 @@
       return'<div style="margin-bottom:14px;">'+
         '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;padding:0 2px;">'+
           '<span>'+cfg.icon+'</span>'+
-          '<span style="font-family:Syne,sans-serif;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:#38e8ff;">'+cfg.label+'</span>'+
-          '<span style="font-family:Syne,sans-serif;font-size:10px;font-weight:800;color:#1a1a00;background:#f5c842;padding:1px 8px;border-radius:999px;">'+entries.length+'</span>'+
+          '<span style="font-family:Syne,sans-serif;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:#fde68a;">'+cfg.label+'</span>'+
+          '<span style="font-family:Syne,sans-serif;font-size:10px;font-weight:800;color:#1a1a00;background:#fde68a;padding:1px 8px;border-radius:999px;">'+entries.length+'</span>'+
         '</div>'+
         entriesHtml+
       '</div>';
@@ -1129,14 +1129,14 @@
       '<div style="background:linear-gradient(160deg,#1a3a8f 0%,#2251c5 50%,#1a2d6e 100%);height:100%;padding:10px;display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;">'+
       // Row 1: ENTER | PREV | NEXT | PDF
       '<div style="display:flex;gap:4px;margin-bottom:4px;flex-shrink:0;">'+
-        '<button id="lab-enter-btn" style="'+navBtnStyle+'background:#f5c842;color:#1a1a00;">ENTER</button>'+
+        '<button id="lab-enter-btn" style="'+navBtnStyle+'background:#fde68a;color:#1a1a00;">ENTER</button>'+
         '<button id="lab-prev-btn" style="'+navBtnStyle+'background:rgba(255,255,255,0.12);">◀ OLDER</button>'+
         '<button id="lab-next-btn" style="'+navBtnStyle+'background:rgba(255,255,255,0.12);">NEWER ▶</button>'+
         '<button id="lab-pdf-btn" style="'+navBtnStyle+'background:rgba(255,255,255,0.12);">PDF</button>'+
       '</div>'+
       // Row 2: ANALYSIS | date+time+delete button | 🔍 transparent
       '<div style="display:flex;gap:4px;margin-bottom:6px;align-items:stretch;flex-shrink:0;">'+
-        '<button id="lab-analysis-btn" style="'+navBtnStyle+'background:rgba(56,232,255,0.18);color:#38e8ff;border:1px solid rgba(56,232,255,0.30);flex:1;">🔬 ANALYSIS</button>'+
+        '<button id="lab-analysis-btn" style="'+navBtnStyle+'background:rgba(253,230,138,0.15);color:#fde68a;border:1px solid rgba(253,230,138,0.30);flex:1;">🔬 ANALYSIS</button>'+
         '<div style="flex:1;position:relative;">'+
           '<button id="lab-date-display" style="width:100%;height:100%;background:rgba(255,255,255,0.10);border-radius:12px;border:1px solid rgba(255,255,255,0.18);padding:6px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:default;">'+
             '<div style="font-family:IBM Plex Mono,monospace;font-size:12px;font-weight:500;color:#fff;line-height:1.3;">'+testDateLabel+'</div>'+
