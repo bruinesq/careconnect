@@ -1,0 +1,135 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root {
+    /* Royal Blue Gradient */
+    --grad-top:     #1a3a8f;
+    --grad-mid:     #2251c5;
+    --grad-bot:     #1a2d6e;
+    --accent-gold:  #f5c842;
+    --accent-cyan:  #38e8ff;
+    --accent-red:   #ff4f6e;
+    --card-bg:      rgba(255,255,255,0.10);
+    --card-border:  rgba(255,255,255,0.18);
+    --text-primary: #ffffff;
+    --text-sec:     rgba(255,255,255,0.65);
+    --nav-bg:       #080d1e;
+    /* In-Out sections */
+    --water-sec:    #0d3580;
+    --urine-sec:    #7a4200;
+    --bm-sec:       #4a2010;
+  }
+
+  body {
+    background: linear-gradient(160deg, var(--grad-top) 0%, var(--grad-mid) 50%, var(--grad-bot) 100%);
+    font-family: 'Syne', ui-sans-serif, system-ui, sans-serif;
+    font-weight: 600;
+    -webkit-tap-highlight-color: transparent;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  /* IBM Plex Mono for all numbers, times, amounts */
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+
+  /* ── Cards ── */
+  .quick-btn {
+    width: 100%;
+    border: 1px solid var(--card-border);
+    font-size: 15px;
+    font-weight: 600;
+    font-family: 'Syne', sans-serif;
+    padding: 10px 14px;
+    border-radius: 14px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    text-align: left;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+
+  /* ── Done stamp — solid white, dark navy text ── */
+  .status-stamp {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    color: #0f1e5c;
+    background: rgba(255,255,255,0.92);
+    border-radius: 8px;
+    padding: 3px 8px;
+    text-align: right;
+    line-height: 1.5;
+    white-space: nowrap;
+  }
+
+  /* ── Section headers ── */
+  .schedule-header {
+    font-family: 'Syne', sans-serif;
+    font-size: 9px;
+    font-weight: 800;
+    color: var(--accent-cyan);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin: 10px 0 4px 2px;
+    padding-left: 8px;
+    border-left: 3px solid var(--accent-cyan);
+  }
+
+  /* ── Progress bar ── */
+  .v-progress-container {
+    width: 20px;
+    flex: 1;
+    background: rgba(255,255,255,0.12);
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
+    min-height: 60px;
+  }
+  .v-progress-fill {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    background: var(--accent-cyan);
+    opacity: 0.80;
+    border-radius: 10px;
+    transition: height 0.5s ease;
+  }
+
+  /* ── Modal ── */
+  .modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.70);
+    z-index: 100;
+    display: flex;
+    align-items: flex-end;
+  }
+  .modal-content {
+    background: #12214a;
+    color: #fff;
+    width: 100%;
+    border-radius: 32px 32px 0 0;
+    padding: 24px;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-top: 1px solid var(--card-border);
+  }
+
+  .warning-box {
+    background: var(--accent-red);
+    color: white;
+    padding: 10px;
+    border-radius: 14px;
+    font-weight: 800;
+    text-align: center;
+    border: 2px solid rgba(255,255,255,0.4);
+  }
+
+  .scroll-area { flex: 1; overflow-y: auto; padding-right: 4px; }
+  .cat-btn { font-weight: 800; font-size: 11px; border-radius: 10px; width: 50%; padding: 10px 0; }
+  .cat-btn-active { background-color: var(--accent-gold); color: #1a1a00; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+</style>
