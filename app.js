@@ -400,7 +400,7 @@
       var rowsHtml=sortedItems.map(function(item,idx){
         var done=isDone(item,group);
         var isMedsView=state.category==='Meds';
-        var doseLabel=MED_DOSES[item]?'<span style="font-size:10px;font-weight:400;color:'+(isMedsView?'rgba(255,255,255,0.6)':'#5a3800')+';margin-left:4px;">('+MED_DOSES[item]+')</span>':'';
+        var doseLabel=MED_DOSES[item]?'<span style="font-size:10px;font-weight:400;color:rgba(255,255,255,0.60);margin-left:4px;">('+MED_DOSES[item]+')</span>':'';
         var ghBadge=(function(){
           if(item!=='GH')return'';
           var lastDose=state.ghCount||0;
@@ -434,7 +434,7 @@
     var cgActiveBg='#f5c842';
     var cgActiveColor='#1a1a00';
     var cgInactiveBg=isMedsView?'rgba(255,255,255,0.12)':'rgba(45,26,0,0.08)';
-    var cgInactiveColor=isMedsView?'rgba(255,255,255,0.8)':'#5a3800';
+    var cgInactiveColor='rgba(255,255,255,0.75)';
 
     // Short date format for display in User row
     var selDate=document.getElementById('date-navigator').value||getAdjustedDateString();
@@ -457,7 +457,7 @@
             var isActive=cg===state.caregiver;
             var isDevice=cg===state.deviceCG;
             var bg=isActive?'#ffffff':(isMedsView?'rgba(0,0,0,0.25)':'rgba(0,0,0,0.12)');
-            var color=isActive?(isMedsView?'#1e3a8a':'#2d1a00'):(isMedsView?'#ffffff':'#2d1a00');
+            var color=isActive?'#1a1a00':'rgba(255,255,255,0.75)';
             var border=isActive?'transparent':(isMedsView?'rgba(255,255,255,0.20)':'rgba(45,26,0,0.20)');
             return '<button class="cg-btn" data-cg="'+cg+'" style="flex:1;padding:7px 2px;border-radius:10px;font-size:11px;font-weight:700;font-family:Syne,sans-serif;border:1px solid '+border+';background:'+bg+';color:'+color+';">'+cg+(isDevice&&!isActive?' 🏠':'')+'</button>';
           }).join('')+
@@ -932,7 +932,7 @@
 
     var eStyle='background:rgba(255,255,255,0.10);border-radius:8px;padding:5px 8px;display:flex;justify-content:space-between;margin-bottom:4px;';
     var eTxt='font-family:IBM Plex Mono,monospace;font-size:13px;font-weight:500;color:#fff;';
-    var eSec='font-family:IBM Plex Mono,monospace;font-size:12px;color:#5a3800;';
+    var eSec='font-family:IBM Plex Mono,monospace;font-size:12px;color:rgba(255,255,255,0.55);';
     var wPct=Math.min((wTotal/state.waterLimit)*100,100);
 
     el.innerHTML=
@@ -1012,11 +1012,11 @@
       if(!entries.length)return'';
       var entriesHtml=entries.map(function(l){
         var subDetail='';
-        if(type==='Medication'&&l.metadata)subDetail='<span style="font-size:9px;font-weight:700;color:#5a3800;margin-left:4px;">'+l.metadata+'</span>';
+        if(type==='Medication'&&l.metadata)subDetail='<span style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.55);margin-left:4px;">'+l.metadata+'</span>';
         var labInfo='';
         if(type==='Labs'){var ha=l.metadata&&l.metadata.includes('ALERT');labInfo=ha?'<span style="font-size:10px;font-weight:800;color:#dc2626;margin-left:6px;">⚠️ Out-of-range</span>':'';}
         var reportActions='';
-        if(type==='Report'){try{var meta=JSON.parse(l.metadata||'{}');reportActions='<div style="display:flex;gap:6px;margin-top:6px;"><button onclick="shareReport(\''+meta.downloadUrl+'\',\''+meta.filename+'\',\'text\')" style="font-size:10px;font-weight:700;background:rgba(255,255,255,0.6);color:#2d1a00;padding:3px 8px;border-radius:8px;border:1px solid rgba(180,120,0,0.2);">📱 Text</button><button onclick="shareReport(\''+meta.downloadUrl+'\',\''+meta.filename+'\',\'email\')" style="font-size:10px;font-weight:700;background:rgba(255,255,255,0.6);color:#2d1a00;padding:3px 8px;border-radius:8px;border:1px solid rgba(180,120,0,0.2);">✉️ Email</button><a href="'+meta.viewUrl+'" target="_blank" style="font-size:10px;font-weight:700;background:rgba(255,255,255,0.6);color:#2d1a00;padding:3px 8px;border-radius:8px;border:1px solid rgba(180,120,0,0.2);text-decoration:none;">👁 View</a></div>';}catch(e){}}
+        if(type==='Report'){try{var meta=JSON.parse(l.metadata||'{}');reportActions='<div style="display:flex;gap:6px;margin-top:6px;"><button onclick="shareReport(\''+meta.downloadUrl+'\',\''+meta.filename+'\',\'text\')" style="font-size:10px;font-weight:700;background:rgba(255,255,255,0.12);color:#fff;padding:3px 8px;border-radius:8px;border:1px solid rgba(255,255,255,0.20);">📱 Text</button><button onclick="shareReport(\''+meta.downloadUrl+'\',\''+meta.filename+'\',\'email\')" style="font-size:10px;font-weight:700;background:rgba(255,255,255,0.12);color:#fff;padding:3px 8px;border-radius:8px;border:1px solid rgba(255,255,255,0.20);">✉️ Email</button><a href="'+meta.viewUrl+'" target="_blank" style="font-size:10px;font-weight:700;background:rgba(255,255,255,0.12);color:#fff;padding:3px 8px;border-radius:8px;border:1px solid rgba(255,255,255,0.20);text-decoration:none;">👁 View</a></div>';}catch(e){}}
         return'<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;margin-bottom:5px;border-radius:14px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.08);">'+
           '<div style="flex:1;min-width:0;">'+
             '<div style="display:flex;align-items:baseline;flex-wrap:wrap;gap:2px;">'+
@@ -1126,7 +1126,7 @@
 
     var navBtnStyle='font-family:Syne,sans-serif;font-weight:800;font-size:11px;color:#fff;border:none;padding:9px 4px;border-radius:12px;flex:1;';
     container.innerHTML=
-      '<div style="background:#ffbf2b;height:100%;padding:10px;display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;">'+
+      '<div style="background:linear-gradient(160deg,#1a3a8f 0%,#2251c5 50%,#1a2d6e 100%);height:100%;padding:10px;display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;">'+
       // Row 1: ENTER | PREV | NEXT | PDF
       '<div style="display:flex;gap:4px;margin-bottom:4px;flex-shrink:0;">'+
         '<button id="lab-enter-btn" style="'+navBtnStyle+'background:#f5c842;color:#1a1a00;">ENTER</button>'+
@@ -1146,7 +1146,7 @@
         '</div>'+
         '<button id="lab-cal-btn" style="flex:0 0 auto;background:transparent;border:none;padding:0 8px;font-size:22px;cursor:pointer;filter:brightness(0.8);">🔍</button>'+
       '</div>'+
-      (allLabs.length>0?'<div style="font-family:Syne,sans-serif;font-size:9px;font-weight:800;color:#5a3800;text-transform:uppercase;letter-spacing:0.06em;text-align:center;margin-bottom:4px;flex-shrink:0;">Result '+(idx+1)+' of '+allLabs.length+'</div>':'')+
+      (allLabs.length>0?'<div style="font-family:Syne,sans-serif;font-size:9px;font-weight:800;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.06em;text-align:center;margin-bottom:4px;flex-shrink:0;">Result '+(idx+1)+' of '+allLabs.length+'</div>':'')+
       '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:none;min-height:0;padding-bottom:8px;">'+labResultsHtml+'</div>'+
       '</div>';
 
@@ -1189,7 +1189,7 @@
       var cells = '';
       // Day headers
       ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(function(d){
-        cells += '<div style="font-family:Syne,sans-serif;font-size:10px;font-weight:800;color:#5a3800;text-align:center;padding:4px 0;">'+d+'</div>';
+        cells += '<div style="font-family:Syne,sans-serif;font-size:10px;font-weight:800;color:rgba(255,255,255,0.50);text-align:center;padding:4px 0;">'+d+'</div>';
       });
       // Empty cells before first day
       for(var e=0;e<firstDay;e++){
@@ -1204,10 +1204,10 @@
         var cellStyle, textStyle;
         if(isCurrent){
           cellStyle = 'background:#38e8ff;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;margin:auto;cursor:pointer;';
-          textStyle = 'font-family:IBM Plex Mono,monospace;font-size:13px;font-weight:700;color:#ffbf2b;';
+          textStyle = 'font-family:IBM Plex Mono,monospace;font-size:13px;font-weight:700;color:#12214a;';
         } else if(hasResult){
           cellStyle = 'background:#f5c842;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;margin:auto;cursor:pointer;box-shadow:0 2px 6px rgba(245,200,66,0.40);';
-          textStyle = 'font-family:IBM Plex Mono,monospace;font-size:13px;font-weight:700;color:#2d1a00;';
+          textStyle = 'font-family:IBM Plex Mono,monospace;font-size:13px;font-weight:700;color:#1a1a00;';
         } else {
           cellStyle = 'width:32px;height:32px;display:flex;align-items:center;justify-content:center;margin:auto;';
           textStyle = 'font-family:IBM Plex Mono,monospace;font-size:13px;font-weight:400;color:#b89040;';
