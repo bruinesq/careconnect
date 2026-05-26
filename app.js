@@ -962,7 +962,7 @@
       '</div>'+
 
       // ── URINE — exactly 2 rows: header row (44px) + 2 entry rows (30px each) = 104px
-      '<div style="background:#b45309;padding:8px 10px;flex:0 0 120px;overflow:hidden;">'+
+      '<div style="background:#0e6989;padding:8px 10px;flex:0 0 165px;overflow:hidden;display:flex;flex-direction:column;">'+
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'+
           '<div style="display:flex;align-items:baseline;gap:8px;">'+
             '<div style="font-family:Syne,sans-serif;font-size:11px;font-weight:800;color:rgba(255,255,255,0.80);text-transform:uppercase;letter-spacing:0.08em;">Urine</div>'+
@@ -970,12 +970,12 @@
           '</div>'+
           '<button id="urine-add" style="background:rgba(255,255,255,0.25);color:#fff;border:none;border-radius:50%;width:30px;height:30px;font-size:16px;font-weight:900;display:flex;align-items:center;justify-content:center;">＋</button>'+
         '</div>'+
-        urineLogs.slice(0,2).map(function(l){return'<div style="'+eStyle+'"><span style="'+eTxt+'">'+l.amount+'</span><span style="'+eSec+'">'+l.time+' · '+l.caregiver+'</span></div>';}).join('')+
+        '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;">'+urineLogs.slice(0,4).map(function(l){return'<div style="'+eStyle+'"><span style="'+eTxt+'">'+l.amount+'</span><span style="'+eSec+'">'+l.time+' · '+l.caregiver+'</span></div>';}).join('')+'</div>'+
         (urineLogs.length>2?'<div style="font-family:Syne,sans-serif;font-size:9px;color:rgba(255,255,255,0.7);text-align:center;">+'+(urineLogs.length-2)+' more</div>':'')+
       '</div>'+
 
       // ── BM — exactly 1 row: label + count on same line
-      '<div style="background:#7c3f2a;padding:8px 10px;flex:0 0 64px;overflow:hidden;">'+
+      '<div style="background:#0a4a5c;padding:8px 10px 14px;flex:0 0 78px;overflow:hidden;">'+
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'+
           '<div style="font-family:Syne,sans-serif;font-size:11px;font-weight:800;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.08em;">BM Events</div>'+
           '<button id="bm-add" style="background:rgba(255,255,255,0.25);color:#fff;border:none;border-radius:50%;width:30px;height:30px;font-size:16px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;">＋</button>'+
