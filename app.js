@@ -1,4 +1,6 @@
-// ─── CONSTANTS ───────────────────────────────────────────────────────────
+// CareConnect app.js — v202605260152
+
+  // ─── CONSTANTS ───────────────────────────────────────────────────────────
   const LAB_REF = {
     "Sodium":          {min:135,  max:145,  unit:"mmol/L", rec:"Critical for hydration. If low, consider sodium levels."},
     "Potassium":       {min:3.5,  max:5.2,  unit:"mEq/L",  rec:"Monitor for heart rhythm or muscle weakness."},
