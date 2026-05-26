@@ -936,10 +936,10 @@
     var wPct=Math.min((wTotal/state.waterLimit)*100,100);
 
     el.innerHTML=
-      '<div style="background:#0d3580;padding:0;height:100%;display:flex;flex-direction:column;gap:0;overflow:hidden;box-sizing:border-box;">'+
+      '<div style="background:linear-gradient(160deg,#0e7490 0%,#0891b2 50%,#0e6989 100%);padding:0;height:100%;display:flex;flex-direction:column;gap:0;overflow:hidden;box-sizing:border-box;">'+
 
       // ── WATER ─────────────────────────────────────────────────────
-      '<div style="background:#0d3580;padding:10px 10px 8px;flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;">'+
+      '<div style="background:rgba(0,0,0,0.18);padding:10px 10px 8px;flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;">'+
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-shrink:0;">'+
           '<div>'+
             '<div style="font-family:Syne,sans-serif;font-size:11px;font-weight:800;color:rgba(255,255,255,0.80);text-transform:uppercase;letter-spacing:0.08em;">Water</div>'+
@@ -1042,7 +1042,7 @@
       '</div>';
     }).join('');
     container.innerHTML=
-      '<div style="background:linear-gradient(160deg,#1a3a8f 0%,#2251c5 50%,#1a2d6e 100%);display:flex;flex-direction:column;height:100%;">'+
+      '<div style="background:linear-gradient(160deg,#0e7490 0%,#0891b2 50%,#0e6989 100%);display:flex;flex-direction:column;height:100%;">'+
         '<div style="padding:10px 14px 5px;flex-shrink:0;">'+
           '<div style="font-family:Syne,sans-serif;font-size:10px;font-weight:800;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.08em;">📅 '+sel+'</div>'+
         '</div>'+
@@ -1126,7 +1126,7 @@
 
     var navBtnStyle='font-family:Syne,sans-serif;font-weight:800;font-size:11px;color:#fff;border:none;padding:9px 4px;border-radius:12px;flex:1;';
     container.innerHTML=
-      '<div style="background:linear-gradient(160deg,#1a3a8f 0%,#2251c5 50%,#1a2d6e 100%);height:100%;padding:10px;display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;">'+
+      '<div style="background:linear-gradient(160deg,#0e7490 0%,#0891b2 50%,#0e6989 100%);height:100%;padding:10px;display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;">'+
       // Row 1: ENTER | PREV | NEXT | PDF
       '<div style="display:flex;gap:4px;margin-bottom:4px;flex-shrink:0;">'+
         '<button id="lab-enter-btn" style="'+navBtnStyle+'background:#fde68a;color:#1a1a00;">ENTER</button>'+
