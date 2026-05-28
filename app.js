@@ -1507,33 +1507,32 @@
     function itemHtml(item){
       var rem=calcRemaining(item.refilled,item.supply);
       var isLow=rem!==null&&rem<=5;
-      var remColor=isLow?'#ff8080':'#6ee7b7';
-      var remBg=isLow?'rgba(230,57,70,0.20)':'rgba(110,231,183,0.10)';
-      var remBorder=isLow?'1px solid rgba(230,57,70,0.35)':'1px solid rgba(110,231,183,0.20)';
-      var cardBg=isLow?'rgba(230,57,70,0.15)':'rgba(255,255,255,0.10)';
-      var cardBorder=isLow?'rgba(230,57,70,0.35)':'rgba(255,255,255,0.18)';
+      var remColor=isLow?'#ff8080':'#a7f3d0';
+      var remBg=isLow?'rgba(230,57,70,0.25)':'rgba(110,231,183,0.15)';
+      var remBorder=isLow?'1px solid rgba(230,57,70,0.50)':'1px solid rgba(110,231,183,0.30)';
+      var cardBg=isLow?'rgba(230,57,70,0.18)':'rgba(255,255,255,0.14)';
+      var cardBorder=isLow?'rgba(230,57,70,0.45)':'rgba(255,255,255,0.26)';
       var refDisplay=item.refilled?(function(){var p=item.refilled.split('-');return (parseInt(p[1]))+'/'+parseInt(p[2])+'/'+p[0].slice(2);})():'—';
       return '<div style="background:'+cardBg+';border:1px solid '+cardBorder+';border-radius:14px;padding:10px 12px;margin-bottom:6px;cursor:pointer;" data-rx-id="'+item.id+'">'+
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">'+
-          '<span style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;color:#fff;">'+item.name+'</span>'+
+          '<span style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;color:#ffffff;text-shadow:0 1px 2px rgba(0,0,0,0.3);">'+item.name+'</span>'+
           '<div style="display:flex;gap:8px;align-items:center;">'+
             (isLow?'<span style="background:#e63946;color:#fff;font-size:8px;font-weight:800;padding:2px 6px;border-radius:999px;font-family:Syne,sans-serif;">LOW</span>':'')+
-            '<button class="rx-edit-btn" data-rx-id="'+item.id+'" style="background:none;border:none;font-size:13px;cursor:pointer;padding:0;">✏️</button>'+
-            '<button class="rx-del-btn" data-rx-id="'+item.id+'" style="background:none;border:none;font-size:11px;font-weight:900;color:rgba(255,100,100,0.60);cursor:pointer;padding:0;">✕</button>'+
+            '<button class="rx-del-btn" data-rx-id="'+item.id+'" style="background:rgba(255,80,80,0.20);border:1px solid rgba(255,80,80,0.35);border-radius:7px;font-size:10px;font-weight:900;color:rgba(255,140,140,0.90);cursor:pointer;padding:2px 7px;font-family:Syne,sans-serif;">✕ Remove</button>'+
           '</div>'+
         '</div>'+
         '<div style="display:flex;gap:5px;">'+
-          '<div style="flex:1;background:rgba(0,0,0,0.18);border-radius:8px;padding:5px 6px;text-align:center;">'+
-            '<div style="font-family:Syne,sans-serif;font-size:7px;font-weight:800;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px;">Supply</div>'+
-            '<div style="font-family:IBM Plex Mono,monospace;font-size:12px;font-weight:600;color:#fff;">'+(item.supply?item.supply+' d':'—')+'</div>'+
+          '<div style="flex:1;background:rgba(0,0,0,0.25);border-radius:8px;padding:5px 6px;text-align:center;">'+
+            '<div style="font-family:Syne,sans-serif;font-size:7px;font-weight:800;color:rgba(255,255,255,0.60);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px;">Supply</div>'+
+            '<div style="font-family:IBM Plex Mono,monospace;font-size:13px;font-weight:600;color:#ffffff;">'+(item.supply?item.supply+' d':'—')+'</div>'+
           '</div>'+
-          '<div style="flex:1;background:rgba(0,0,0,0.18);border-radius:8px;padding:5px 6px;text-align:center;">'+
-            '<div style="font-family:Syne,sans-serif;font-size:7px;font-weight:800;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px;">Re-filled</div>'+
-            '<div style="font-family:IBM Plex Mono,monospace;font-size:12px;font-weight:600;color:#fff;">'+refDisplay+'</div>'+
+          '<div style="flex:1;background:rgba(0,0,0,0.25);border-radius:8px;padding:5px 6px;text-align:center;">'+
+            '<div style="font-family:Syne,sans-serif;font-size:7px;font-weight:800;color:rgba(255,255,255,0.60);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px;">Re-filled</div>'+
+            '<div style="font-family:IBM Plex Mono,monospace;font-size:13px;font-weight:600;color:#ffffff;">'+refDisplay+'</div>'+
           '</div>'+
           '<div style="flex:1;background:'+remBg+';border:'+remBorder+';border-radius:8px;padding:5px 6px;text-align:center;">'+
-            '<div style="font-family:Syne,sans-serif;font-size:7px;font-weight:800;color:'+remColor+';opacity:0.80;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px;">Remaining</div>'+
-            '<div style="font-family:IBM Plex Mono,monospace;font-size:12px;font-weight:600;color:'+remColor+';">'+(rem!==null?rem+' d':'—')+'</div>'+
+            '<div style="font-family:Syne,sans-serif;font-size:7px;font-weight:800;color:'+remColor+';text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px;">Remaining</div>'+
+            '<div style="font-family:IBM Plex Mono,monospace;font-size:13px;font-weight:600;color:'+remColor+';">'+(rem!==null?rem+' d':'—')+'</div>'+
           '</div>'+
         '</div>'+
       '</div>';
@@ -1542,34 +1541,42 @@
     var medsHtml=meds.map(itemHtml).join('');
     var suppliesHtml=supplies.map(itemHtml).join('');
 
+    var secHdrStyle='font-family:Syne,sans-serif;font-size:9px;font-weight:800;color:#fde68a;text-transform:uppercase;letter-spacing:0.12em;padding:6px 8px;border-left:3px solid #fde68a;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;';
+    var addBtnStyle='background:rgba(253,230,138,0.12);border:1px dashed rgba(253,230,138,0.40);border-radius:12px;padding:8px;text-align:center;font-family:Syne,sans-serif;font-size:12px;font-weight:800;color:#fde68a;cursor:pointer;flex-shrink:0;margin-top:4px;';
+
     container.innerHTML=
-      '<div style="background:linear-gradient(160deg,#0e7490 0%,#0891b2 50%,#0e6989 100%);height:100%;display:flex;flex-direction:column;overflow:hidden;">'+
+      '<div style="background:linear-gradient(160deg,#0e7490 0%,#0891b2 50%,#0e6989 100%);height:100%;display:flex;flex-direction:column;overflow:hidden;padding:10px 10px 0;">'+
         // Header bar
-        '<div style="padding:10px 10px 0;flex-shrink:0;">'+
-          '<div style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.16);border-radius:14px;padding:8px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">'+
-            '<div>'+
-              '<div style="font-family:Syne,sans-serif;font-size:12px;font-weight:800;color:#fff;letter-spacing:0.04em;">R<span style="font-size:9px;vertical-align:super;">x</span> Tracker</div>'+
-              '<div style="font-family:IBM Plex Mono,monospace;font-size:9px;color:rgba(255,255,255,0.45);">Sorted: least days first</div>'+
-            '</div>'+
-            '<button id="rx-add-btn" style="background:#fde68a;color:#0a3a47;border:none;border-radius:10px;font-family:Syne,sans-serif;font-weight:800;font-size:11px;padding:7px 14px;">＋ ADD</button>'+
+        '<div style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.22);border-radius:14px;padding:8px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">'+
+          '<div>'+
+            '<div style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:#ffffff;letter-spacing:0.04em;">R<span style="font-size:9px;vertical-align:super;">x</span> Tracker</div>'+
+            '<div style="font-family:IBM Plex Mono,monospace;font-size:9px;color:rgba(255,255,255,0.55);">Tap item to edit · sorted by days left</div>'+
+          '</div>'+
+          '<button id="rx-add-btn" style="background:#fde68a;color:#0a3a47;border:none;border-radius:10px;font-family:Syne,sans-serif;font-weight:800;font-size:11px;padding:7px 14px;">＋ ADD</button>'+
+        '</div>'+
+
+        // ── MEDICATIONS — top half, scrollable ───────────────────────────
+        '<div style="flex:1;min-height:0;display:flex;flex-direction:column;background:rgba(0,0,0,0.12);border-radius:14px;margin-bottom:6px;overflow:hidden;">'+
+          '<div style="'+secHdrStyle+'margin:0;">'+
+            '<span>💊 Medications</span>'+
+            '<span style="font-family:IBM Plex Mono,monospace;font-size:9px;color:rgba(255,255,255,0.45);font-weight:400;">'+meds.length+'</span>'+
+          '</div>'+
+          '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:6px 8px 4px;min-height:0;">'+
+            medsHtml+
+            '<div id="rx-add-med" style="'+addBtnStyle+'">＋ Add Medication</div>'+
           '</div>'+
         '</div>'+
-        // Scrollable body
-        '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:none;padding:0 10px 24px;min-height:0;">'+
-          // Medications section
-          '<div style="font-family:Syne,sans-serif;font-size:9px;font-weight:800;color:#fde68a;text-transform:uppercase;letter-spacing:0.12em;margin:8px 0 6px 2px;padding-left:8px;border-left:3px solid #fde68a;display:flex;justify-content:space-between;">'+
-            '<span>💊 Medications</span>'+
-            '<span style="font-family:IBM Plex Mono,monospace;font-size:9px;color:rgba(255,255,255,0.40);font-weight:400;">'+meds.length+' items</span>'+
-          '</div>'+
-          medsHtml+
-          '<div id="rx-add-med" style="background:rgba(253,230,138,0.10);border:1px dashed rgba(253,230,138,0.35);border-radius:12px;padding:8px;text-align:center;font-family:Syne,sans-serif;font-size:12px;font-weight:800;color:#fde68a;cursor:pointer;margin-bottom:10px;">＋ Add Medication</div>'+
-          // Supplies section
-          '<div style="font-family:Syne,sans-serif;font-size:9px;font-weight:800;color:#fde68a;text-transform:uppercase;letter-spacing:0.12em;margin:6px 0 6px 2px;padding-left:8px;border-left:3px solid #fde68a;display:flex;justify-content:space-between;">'+
+
+        // ── SUPPLIES — bottom half, scrollable ───────────────────────────
+        '<div style="flex:1;min-height:0;display:flex;flex-direction:column;background:rgba(0,0,0,0.12);border-radius:14px;margin-bottom:10px;overflow:hidden;">'+
+          '<div style="'+secHdrStyle+'margin:0;">'+
             '<span>🧰 Supplies</span>'+
-            '<span style="font-family:IBM Plex Mono,monospace;font-size:9px;color:rgba(255,255,255,0.40);font-weight:400;">'+supplies.length+' items</span>'+
+            '<span style="font-family:IBM Plex Mono,monospace;font-size:9px;color:rgba(255,255,255,0.45);font-weight:400;">'+supplies.length+'</span>'+
           '</div>'+
-          suppliesHtml+
-          '<div id="rx-add-sup" style="background:rgba(253,230,138,0.10);border:1px dashed rgba(253,230,138,0.35);border-radius:12px;padding:8px;text-align:center;font-family:Syne,sans-serif;font-size:12px;font-weight:800;color:#fde68a;cursor:pointer;margin-bottom:10px;">＋ Add Supply</div>'+
+          '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:6px 8px 4px;min-height:0;">'+
+            suppliesHtml+
+            '<div id="rx-add-sup" style="'+addBtnStyle+'">＋ Add Supply</div>'+
+          '</div>'+
         '</div>'+
       '</div>';
 
@@ -1577,26 +1584,19 @@
     document.getElementById('rx-add-btn').addEventListener('click',function(){showRxEditModal(null,null,data);});
     document.getElementById('rx-add-med').addEventListener('click',function(){showRxEditModal(null,'meds',data);});
     document.getElementById('rx-add-sup').addEventListener('click',function(){showRxEditModal(null,'supplies',data);});
-    document.querySelectorAll('.rx-edit-btn').forEach(function(btn){
-      btn.addEventListener('click',function(e){
-        e.stopPropagation();
-        var id=this.getAttribute('data-rx-id');
-        var item=data.items.find(function(i){return String(i.id)===String(id);});
-        if(item) showRxEditModal(item,item.category,data);
-      });
-    });
+
     document.querySelectorAll('.rx-del-btn').forEach(function(btn){
       btn.addEventListener('click',function(e){
         e.stopPropagation();
         var id=this.getAttribute('data-rx-id');
         var modal=document.getElementById('modal-container');
         modal.innerHTML='<div class="modal" onclick="document.getElementById(\'modal-container\').innerHTML=\'\'">'+
-          '<div class="modal-content" onclick="event.stopPropagation()" style="background:linear-gradient(180deg,#0e7490,#083d4f);border-top:1px solid rgba(255,255,255,0.15);">'+
+          '<div class="modal-content" onclick="event.stopPropagation()" style="background:linear-gradient(180deg,#0e7490,#083d4f);border-top:1px solid rgba(255,255,255,0.15);padding-bottom:40px;">'+
             '<div style="text-align:center;font-size:32px;margin-bottom:8px;">⚠️</div>'+
             '<div style="font-family:Syne,sans-serif;font-size:15px;font-weight:800;color:#fff;text-align:center;margin-bottom:6px;">Remove this item?</div>'+
             '<div style="font-family:Syne,sans-serif;font-size:11px;color:rgba(255,255,255,0.55);text-align:center;margin-bottom:20px;">This will not affect the Meds schedule.</div>'+
             '<div style="display:flex;gap:10px;">'+
-              '<button id="rx-del-no" style="flex:1;padding:14px;border-radius:14px;font-family:Syne,sans-serif;font-weight:800;font-size:14px;background:rgba(255,255,255,0.10);color:#fff;border:1px solid rgba(255,255,255,0.20);">KEEP</button>'+
+              '<button id="rx-del-no" style="flex:1;padding:14px;border-radius:14px;font-family:Syne,sans-serif;font-weight:800;font-size:14px;background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.22);">KEEP</button>'+
               '<button id="rx-del-yes" style="flex:1;padding:14px;border-radius:14px;font-family:Syne,sans-serif;font-weight:800;font-size:14px;background:#e63946;color:#fff;border:none;">REMOVE</button>'+
             '</div>'+
           '</div>'+
@@ -1610,7 +1610,8 @@
         });
       });
     });
-    // Tap item to edit
+
+    // Tap card to edit (but not the remove button)
     document.querySelectorAll('[data-rx-id]').forEach(function(el){
       if(el.tagName==='DIV'){
         el.addEventListener('click',function(){
