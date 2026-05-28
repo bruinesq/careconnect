@@ -1493,10 +1493,14 @@
     var meds=sortRxItems(data.items.filter(function(i){return i.category==='meds';}));
     var supplies=sortRxItems(data.items.filter(function(i){return i.category==='supplies';}));
 
-    // Check for low items and show alert if needed
+    // Check for low items — respect snooze window
+    var now=Date.now();
     var lowItems=data.items.filter(function(i){
       var rem=calcRemaining(i.refilled,i.supply);
-      return rem!==null&&rem<=5&&!i.snoozed;
+      if(rem===null||rem>5) return false;
+      if(i.snoozed) return false;
+      if(i.snoozeUntil&&now<i.snoozeUntil) return false; // still in snooze window
+      return true;
     });
     if(lowItems.length>0) setTimeout(function(){showRxAlert(lowItems,data);},400);
 
@@ -1724,20 +1728,19 @@
     '</div>';
 
     document.getElementById('rx-alert-remind').addEventListener('click',function(){
-      // Snooze all low items for 3 hours
+      // Snooze all low items — save timestamp 3 hours from now
       var snoozeUntil=Date.now()+(3*60*60*1000);
       lowItems.forEach(function(li){
         var idx=data.items.findIndex(function(i){return String(i.id)===String(li.id);});
-        if(idx>=0) data.items[idx].snoozeUntil=snoozeUntil;
+        if(idx>=0){
+          data.items[idx].snoozeUntil=snoozeUntil;
+          data.items[idx].snoozed=false; // snoozed=false means it CAN alert again after snooze expires
+        }
       });
       saveRxData(data);
       modal.innerHTML='';
-      // Re-trigger after 3 hours
-      setTimeout(function(){
-        if(state.view==='rx') renderRx(document.getElementById('view-container'));
-        else showRxAlert(lowItems,getRxData());
-      }, 3*60*60*1000);
-      showToast('Reminder set for 3 hours ✓','success');
+      showToast('Will remind again in 3 hours ✓','success');
+      // No setTimeout — snooze is checked on next page load/visit
     });
 
     document.getElementById('rx-alert-stop').addEventListener('click',function(){
