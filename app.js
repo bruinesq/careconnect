@@ -101,6 +101,8 @@
     wire('btn-rx',    function(){nav('rx');});
     var dn=document.getElementById('date-navigator');
     if(dn)dn.addEventListener('change',function(){loadData();});
+    // Load Rx data from Supabase on startup
+    loadRxFromSupabase();
   };
 
   // ─── FIRST-LAUNCH DEVICE PICKER ──────────────────────────────────────────
@@ -1451,16 +1453,36 @@
   function getRxData(){
     try{
       var raw=localStorage.getItem('rx_data');
-      if(raw) return JSON.parse(raw);
+      if(raw){
+        var parsed=JSON.parse(raw);
+        if(parsed&&parsed.items&&parsed.items.length>0) return parsed;
+      }
     }catch(e){}
-    // Build defaults
-    var now=new Date();
-    var todayStr=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+    // Build defaults if nothing saved
+    var todayStr=new Date().toISOString().split('T')[0];
     var meds=RX_DEFAULT_MEDS.map(function(n){return{id:Date.now()+Math.random(),name:n,category:'meds',supply:30,refilled:todayStr,snoozed:false};});
     var supplies=RX_DEFAULT_SUPPLIES.map(function(n){return{id:Date.now()+Math.random(),name:n,category:'supplies',supply:30,refilled:todayStr,snoozed:false};});
     var data={items:meds.concat(supplies)};
     saveRxData(data);
     return data;
+  }
+
+  // Load Rx data from Supabase on startup and sync to localStorage
+  function loadRxFromSupabase(){
+    sbGet('settings','key=eq.rx_data&select=value').then(function(rows){
+      if(rows&&rows.length>0&&rows[0].value){
+        try{
+          var parsed=JSON.parse(rows[0].value);
+          if(parsed&&parsed.items&&parsed.items.length>0){
+            localStorage.setItem('rx_data',rows[0].value);
+            // Re-render if currently on rx page
+            if(state.view==='rx'){
+              renderRx(document.getElementById('view-container'));
+            }
+          }
+        }catch(e){console.error('rx parse error',e);}
+      }
+    }).catch(function(e){console.error('rx load error',e);});
   }
 
   function saveRxData(data){
@@ -1489,6 +1511,23 @@
   }
 
   function renderRx(container){
+    // Always sync from Supabase first, then render from whatever is in localStorage
+    sbGet('settings','key=eq.rx_data&select=value').then(function(rows){
+      if(rows&&rows.length>0&&rows[0].value){
+        try{
+          var parsed=JSON.parse(rows[0].value);
+          if(parsed&&parsed.items&&parsed.items.length>0){
+            localStorage.setItem('rx_data',rows[0].value);
+          }
+        }catch(e){}
+      }
+      renderRxFromLocal(container);
+    }).catch(function(){
+      renderRxFromLocal(container);
+    });
+  }
+
+  function renderRxFromLocal(container){
     var data=getRxData();
     var meds=sortRxItems(data.items.filter(function(i){return i.category==='meds';}));
     var supplies=sortRxItems(data.items.filter(function(i){return i.category==='supplies';}));
