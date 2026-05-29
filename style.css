@@ -2,7 +2,10 @@
 
   :root {
     /* Royal Blue Gradient */
-    --meds-grad:    linear-gradient(180deg,#1a3a8f 0%,#2251c5 40%,#2e6fd9 75%,#3d82e0 100%);
+    --meds-grad:    linear-gradient(160deg,#14532d 0%,#166534 50%,#14532d 100%);
+    --green-dark:   #0d3b1e;
+    --green-mid:    #166534;
+    --green-lt:     #22c55e;
     --sky-grad:     linear-gradient(160deg,#0e7490 0%,#0891b2 50%,#0e6989 100%);
     --grad-top:     #1a3a8f;
     --grad-mid:     #2251c5;
