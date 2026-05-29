@@ -545,53 +545,76 @@ function switchFamily(){
 //  LOAD ALL DATA
 // ════════════════════════════════════════════════
 async function loadAll(){
-  // members
-  const {data:members} = await sb.from('members')
-    .select('*').eq('family_id',state.familyId).order('display_order');
-  state.members = members||[];
+  try {
+    // members
+    const {data:members, error:mErr} = await sb.from('members')
+      .select('*').eq('family_id',state.familyId).order('display_order');
+    if(mErr) throw new Error('members: '+mErr.message);
+    state.members = members||[];
 
-  // set default active user
-  const packers = state.members.filter(m=>!m.is_subject);
-  if(!state.activeUser && packers.length) state.activeUser = packers[0];
+    // reset per-family state on family switch
+    const packers = state.members.filter(m=>!m.is_subject);
+    state.activeUser   = packers[0]||null;
+    state.activeMember = packers[0]||null;
 
-  // set default active member for family tab
-  if(!state.activeMember && packers.length) state.activeMember = packers[0];
+    // Matthews has no Ryan tab — default to family
+    if(state.familyKey==='matthews') state.activeTab = 'family';
 
-  // categories (Ryan's sub-lists — JMCR only)
-  const {data:cats} = await sb.from('categories')
-    .select('*').eq('family_id',state.familyId).order('display_order');
-  state.categories = cats||[];
+    // categories (Ryan sub-lists — JMCR only)
+    const {data:cats, error:cErr} = await sb.from('categories')
+      .select('*').eq('family_id',state.familyId).order('display_order');
+    if(cErr) throw new Error('categories: '+cErr.message);
+    state.categories = cats||[];
 
-  // active trip
-  const {data:trips} = await sb.from('trips')
-    .select('*').eq('family_id',state.familyId).eq('is_active',true).limit(1);
-  state.trip = trips?.[0]||null;
+    // active trip
+    const {data:trips, error:tErr} = await sb.from('trips')
+      .select('*').eq('family_id',state.familyId).eq('is_active',true).limit(1);
+    if(tErr) throw new Error('trips: '+tErr.message);
+    state.trip = trips?.[0]||null;
 
-  if(state.trip){
-    await loadCheckItems();
+    if(state.trip){
+      await loadCheckItems();
+    }
+
+    // shared data (all families see flights/hotels/reservations)
+    await loadFlights();
+    await loadHotels();
+    await loadReservations();
+
+    // app_state — restore last tab/sub/member
+    const {data:as} = await sb.from('app_state')
+      .select('*').eq('family_id',state.familyId).limit(1);
+    if(as?.[0]){
+      // only restore ryan tab for JMCR
+      if(state.familyKey==='jmcr'){
+        state.activeTab = as[0].active_tab || 'ryan';
+      } else {
+        state.activeTab = (as[0].active_tab==='ryan') ? 'family' : (as[0].active_tab||'family');
+      }
+      state.ryanSub = as[0].active_sub || 'Backpack';
+      const savedMember = state.members.find(m=>m.id===as[0].active_member);
+      if(savedMember) state.activeMember = savedMember;
+    }
+
+    // realtime
+    setupRealtime();
+
+    // show app
+    document.getElementById('loadingScreen').classList.add('hidden');
+    document.getElementById('familyScreen').classList.add('hidden');
+    document.getElementById('app').style.display='block';
+    render();
+
+  } catch(err) {
+    console.error('loadAll error:', err);
+    document.getElementById('loadingScreen').innerHTML =
+      '<div style="color:white;text-align:center;padding:2rem;">' +
+      '<div style="font-size:2rem;margin-bottom:1rem;">⚠️</div>' +
+      '<div style="font-size:0.9rem;font-weight:600;margin-bottom:0.5rem;">Failed to load</div>' +
+      '<div style="font-size:0.75rem;opacity:0.8;margin-bottom:1.5rem;">'+err.message+'</div>' +
+      '<button onclick="location.reload()" style="padding:0.6rem 1.2rem;border:2px solid white;border-radius:0.5rem;background:transparent;color:white;font-size:0.85rem;cursor:pointer;">Retry</button>' +
+      '</div>';
   }
-
-  // shared data (all families see flights/hotels/reservations)
-  await loadFlights();
-  await loadHotels();
-  await loadReservations();
-
-  // app_state
-  const {data:as} = await sb.from('app_state').select('*').eq('family_id',state.familyId).limit(1);
-  if(as?.[0]){
-    state.activeTab  = as[0].active_tab  || 'ryan';
-    state.ryanSub    = as[0].active_sub  || 'Backpack';
-    const savedMember = state.members.find(m=>m.id===as[0].active_member);
-    if(savedMember) state.activeMember = savedMember;
-  }
-
-  // subscribe realtime
-  setupRealtime();
-
-  // render
-  document.getElementById('loadingScreen').classList.add('hidden');
-  document.getElementById('app').style.display='block';
-  render();
 }
 
 async function loadCheckItems(){
@@ -1987,11 +2010,16 @@ document.addEventListener('click',e=>{
 //  BOOT
 // ════════════════════════════════════════════════
 (async function boot(){
+  // Show family screen initially — always let user pick
+  // (avoids stale localStorage causing blank screen)
   const saved = localStorage.getItem('familyKey');
   if(saved && FAMILY_IDS[saved]){
+    // reset member state so it re-populates for this family
+    state.activeUser   = null;
+    state.activeMember = null;
     await selectFamily(saved);
   }
-  // else show family screen (already visible)
+  // else family screen is already visible — nothing to do
 })();
 </script>
 
