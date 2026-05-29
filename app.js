@@ -328,6 +328,20 @@
     var logs=state.allLogs.filter(function(l){return l.date===sel;});
     var c=document.getElementById('view-container');if(!c)return;
     console.log('render: view='+state.view+' category='+state.category+' logs='+logs.length);
+
+    // Switch header color based on active page
+    var header=document.querySelector('header');
+    var isGreen=(state.view==='rx'||state.view==='labs'||(state.view==='dash'&&state.category==='Meds'));
+    if(header){
+      header.style.background=isGreen
+        ?'linear-gradient(135deg,#0d3b1e,#14532d)'
+        :'linear-gradient(135deg,#083d4f,#0e7490)';
+    }
+    // Title color
+    var titles=document.querySelectorAll('header div div');
+    if(titles.length>=2){
+      titles[0].style.color=isGreen?'#fde68a':'#fde68a'; // gold stays gold on both
+    }
     ['meds','tasks','fluids','logs','labs','dash','rx'].forEach(function(t){
       var b=document.getElementById('btn-'+t);if(!b)return;
       var active=(t==='meds'  && state.view==='dash' && state.category==='Meds')
@@ -423,14 +437,14 @@
 
       var allDone=doneGroups.indexOf(group)!==-1;
       var isMedsView=state.category==='Meds';
-      var hdrColor=isMedsView?(allDone?'rgba(56,232,255,0.40)':'#38e8ff'):(allDone?'rgba(253,230,138,0.40)':'#fde68a');
-      var hdrBorder=isMedsView?(allDone?'rgba(56,232,255,0.25)':'#38e8ff'):(allDone?'rgba(253,230,138,0.25)':'#fde68a');
+      var hdrColor=isMedsView?(allDone?'rgba(253,230,138,0.40)':'#fde68a'):(allDone?'rgba(253,230,138,0.40)':'#fde68a');
+      var hdrBorder=isMedsView?(allDone?'rgba(253,230,138,0.25)':'#fde68a'):(allDone?'rgba(253,230,138,0.25)':'#fde68a');
       return '<div style="font-family:Syne,sans-serif;font-size:10px;font-weight:800;color:'+hdrColor+';text-transform:uppercase;letter-spacing:0.10em;margin:10px 0 4px 2px;padding-left:8px;border-left:3px solid '+hdrBorder+';">'+group+(allDone?' ✓':'')+'</div>'+rowsHtml;
     }).join('');
 
     var isProxy=state.caregiver!==state.deviceCG;
     var isMedsView=state.category==='Meds';
-    var pageBg=isMedsView?'linear-gradient(180deg,#1a3a8f 0%,#2251c5 40%,#2e6fd9 75%,#3d82e0 100%)':'linear-gradient(160deg,#0e7490 0%,#0891b2 50%,#0e6989 100%)';
+    var pageBg=isMedsView?'linear-gradient(160deg,#14532d 0%,#166534 50%,#14532d 100%)':'linear-gradient(160deg,#0e7490 0%,#0891b2 50%,#0e6989 100%)';
     var cgBarBg='rgba(255,255,255,0.10)';
     var cgBarBorder='rgba(255,255,255,0.18)';
     var logAsColor='rgba(255,255,255,0.80)';
@@ -629,7 +643,7 @@
       return '<button class="kp-num" data-val="'+k+'" style="padding:16px;border-radius:14px;font-weight:900;font-size:22px;background:'+(isDel?'#dc2626':hide?'#4b5563':'#6b7280')+';color:'+(hide?'#4b5563':'#ffffff')+';border:1px solid '+(isDel?'#ef4444':hide?'#4b5563':'#9ca3af')+';'+(hide?'pointer-events:none;':'')+'">'+k+'</button>';
     }).join('');
 
-    modal.innerHTML='<div class="modal"><div style="background:linear-gradient(180deg,#0e7490,#0a5a72);width:100%;border-radius:32px 32px 0 0;padding:20px 16px 28px;max-height:92vh;overflow-y:auto;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><div style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:#fde68a;text-transform:uppercase;">'+kp.label+'</div><button id="kp-cancel" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.85);font-family:Syne,sans-serif;font-weight:800;font-size:12px;padding:6px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.20);">✕ CANCEL</button></div>'+volHtml+'<div id="kp-time-box" style="background:'+(isTime?'#083d4f':'rgba(255,255,255,0.10)')+';border:2px solid '+(isTime?'#38e8ff':'rgba(255,255,255,0.20)')+';border-radius:16px;padding:14px 16px;margin-bottom:16px;cursor:pointer;"><div style="font-size:10px;font-weight:900;color:'+(isTime?'#fde68a':'rgba(255,255,255,0.45)')+';text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Time '+((!kp.timeDigits&&!kp.ampm)?'(tap to change — using current time)':'')+'</div><div style="font-family:IBM Plex Mono,monospace;font-size:32px;font-weight:600;color:#ffffff;letter-spacing:2px;min-height:40px;display:flex;align-items:center;">'+timeDisplay+ampmHtml+'</div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;">'+keysHtml+'</div><button id="kp-confirm" style="width:100%;padding:16px;border-radius:16px;font-family:Syne,sans-serif;font-weight:800;font-size:16px;background:#fde68a;color:#0a3a47;">✓ CONFIRM</button></div></div>';
+    modal.innerHTML='<div class="modal"><div style="background:linear-gradient(180deg,#14532d,#0d3b1e);width:100%;border-radius:32px 32px 0 0;padding:20px 16px 28px;max-height:92vh;overflow-y:auto;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><div style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:#fde68a;text-transform:uppercase;">'+kp.label+'</div><button id="kp-cancel" style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.85);font-family:Syne,sans-serif;font-weight:800;font-size:12px;padding:6px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.20);">✕ CANCEL</button></div>'+volHtml+'<div id="kp-time-box" style="background:'+(isTime?'#083d4f':'rgba(255,255,255,0.10)')+';border:2px solid '+(isTime?'#38e8ff':'rgba(255,255,255,0.20)')+';border-radius:16px;padding:14px 16px;margin-bottom:16px;cursor:pointer;"><div style="font-size:10px;font-weight:900;color:'+(isTime?'#fde68a':'rgba(255,255,255,0.45)')+';text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Time '+((!kp.timeDigits&&!kp.ampm)?'(tap to change — using current time)':'')+'</div><div style="font-family:IBM Plex Mono,monospace;font-size:32px;font-weight:600;color:#ffffff;letter-spacing:2px;min-height:40px;display:flex;align-items:center;">'+timeDisplay+ampmHtml+'</div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;">'+keysHtml+'</div><button id="kp-confirm" style="width:100%;padding:16px;border-radius:16px;font-family:Syne,sans-serif;font-weight:800;font-size:16px;background:#fde68a;color:#0a3a47;">✓ CONFIRM</button></div></div>';
 
     // Wire all buttons with addEventListener
     document.getElementById('kp-cancel').addEventListener('click',function(){document.getElementById('modal-container').innerHTML='';});
@@ -801,7 +815,7 @@
     }
 
     modal.innerHTML=
-      '<div class="modal"><div style="background:linear-gradient(180deg,#0e7490,#0a5a72);width:100%;border-radius:32px 32px 0 0;padding:20px 16px 28px;max-height:92vh;overflow-y:auto;">'+
+      '<div class="modal"><div style="background:linear-gradient(180deg,#14532d,#0d3b1e);width:100%;border-radius:32px 32px 0 0;padding:20px 16px 28px;max-height:92vh;overflow-y:auto;">'+
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'+
           '<div style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:#fde68a;text-transform:uppercase;">💉 GH — Growth Hormone (0.4ml)</div>'+
           '<button id="gh-cancel" style="background:#6b7280;color:#f3f4f6;font-weight:900;font-size:12px;padding:6px 14px;border-radius:10px;border:1px solid #9ca3af;">✕</button>'+
@@ -890,7 +904,7 @@
 
   function showBMPicker(group){
     var modal=document.getElementById('modal-container');
-    modal.innerHTML='<div class="modal" onclick="document.getElementById(\'modal-container\').innerHTML=\'\'"><div class="modal-content" onclick="event.stopPropagation()" style="padding-bottom:36px;background:linear-gradient(180deg,#0e7490,#0a5a72);border-top:1px solid rgba(255,255,255,0.15);"><div class="text-center mb-6"><div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;color:#fde68a;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em;">BM Event</div><div style="font-family:Syne,sans-serif;font-size:12px;color:rgba(255,255,255,0.60);font-weight:700;">Select type</div></div><div class="grid grid-cols-2 gap-3 mb-4">'+BM_OPTIONS.map(function(opt){return'<button class="bm-opt" data-key="'+opt.key+'" data-label="'+opt.label+'" data-display="'+opt.display+'" data-group="'+group+'" style="padding:20px 12px;border-radius:20px;border:1px solid rgba(255,255,255,0.20);background:rgba(255,255,255,0.10);display:flex;flex-direction:column;align-items:center;gap:6px;"><span style="font-size:36px;font-weight:900;color:'+opt.color+';">'+opt.display+'</span><span style="font-size:14px;font-weight:900;color:'+opt.color+';">'+opt.label+'</span></button>';}).join('')+'</div><button id="bm-cancel" class=" style="width:100%;background:rgba(255,255,255,0.10);color:rgba(255,255,255,0.80);font-family:Syne,sans-serif;font-weight:800;font-size:14px;padding:14px;border-radius:16px;border:1px solid rgba(255,255,255,0.15);">CANCEL</button></div></div>';
+    modal.innerHTML='<div class="modal" onclick="document.getElementById(\'modal-container\').innerHTML=\'\'"><div class="modal-content" onclick="event.stopPropagation()" style="padding-bottom:36px;background:linear-gradient(180deg,#14532d,#0d3b1e);border-top:1px solid rgba(255,255,255,0.15);"><div class="text-center mb-6"><div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;color:#fde68a;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em;">BM Event</div><div style="font-family:Syne,sans-serif;font-size:12px;color:rgba(255,255,255,0.60);font-weight:700;">Select type</div></div><div class="grid grid-cols-2 gap-3 mb-4">'+BM_OPTIONS.map(function(opt){return'<button class="bm-opt" data-key="'+opt.key+'" data-label="'+opt.label+'" data-display="'+opt.display+'" data-group="'+group+'" style="padding:20px 12px;border-radius:20px;border:1px solid rgba(255,255,255,0.20);background:rgba(255,255,255,0.10);display:flex;flex-direction:column;align-items:center;gap:6px;"><span style="font-size:36px;font-weight:900;color:'+opt.color+';">'+opt.display+'</span><span style="font-size:14px;font-weight:900;color:'+opt.color+';">'+opt.label+'</span></button>';}).join('')+'</div><button id="bm-cancel" class=" style="width:100%;background:rgba(255,255,255,0.10);color:rgba(255,255,255,0.80);font-family:Syne,sans-serif;font-weight:800;font-size:14px;padding:14px;border-radius:16px;border:1px solid rgba(255,255,255,0.15);">CANCEL</button></div></div>';
     document.getElementById('bm-cancel').addEventListener('click',function(){document.getElementById('modal-container').innerHTML='';});
     document.querySelectorAll('.bm-opt').forEach(function(btn){
       btn.addEventListener('click',function(){
@@ -1065,7 +1079,7 @@
 
   function confirmDelete(id){
     var modal=document.getElementById('modal-container');
-    modal.innerHTML='<div class="modal" onclick="document.getElementById(\'modal-container\').innerHTML=\'\'"><div class="modal-content" onclick="event.stopPropagation()" style="padding-bottom:36px;background:linear-gradient(180deg,#0e7490,#0a5a72);border-top:1px solid rgba(255,255,255,0.15);"><div class="text-center mb-6"><div class="text-5xl mb-2">🗑️</div><div class="font-black text-lg text-slate-800">Delete this entry?</div><div class="text-sm text-slate-400 mt-1">This cannot be undone.</div></div><button id="del-yes" class="w-full bg-red-500 text-white font-black py-4 rounded-2xl mb-3 shadow-lg">YES, DELETE</button><button id="del-no" class=" style="width:100%;background:rgba(255,255,255,0.10);color:rgba(255,255,255,0.80);font-family:Syne,sans-serif;font-weight:800;font-size:14px;padding:14px;border-radius:16px;border:1px solid rgba(255,255,255,0.15);">CANCEL</button></div></div>';
+    modal.innerHTML='<div class="modal" onclick="document.getElementById(\'modal-container\').innerHTML=\'\'"><div class="modal-content" onclick="event.stopPropagation()" style="padding-bottom:36px;background:linear-gradient(180deg,#14532d,#0d3b1e);border-top:1px solid rgba(255,255,255,0.15);"><div class="text-center mb-6"><div class="text-5xl mb-2">🗑️</div><div class="font-black text-lg text-slate-800">Delete this entry?</div><div class="text-sm text-slate-400 mt-1">This cannot be undone.</div></div><button id="del-yes" class="w-full bg-red-500 text-white font-black py-4 rounded-2xl mb-3 shadow-lg">YES, DELETE</button><button id="del-no" class=" style="width:100%;background:rgba(255,255,255,0.10);color:rgba(255,255,255,0.80);font-family:Syne,sans-serif;font-weight:800;font-size:14px;padding:14px;border-radius:16px;border:1px solid rgba(255,255,255,0.15);">CANCEL</button></div></div>';
     document.getElementById('del-yes').addEventListener('click',function(){
       document.getElementById('modal-container').innerHTML='';
       sbDelete('logs',id)
@@ -1117,7 +1131,7 @@
               '<span style="font-family:IBM Plex Mono,monospace;font-weight:600;font-size:14px;color:'+(isOut?'#ff4f6e':'#38e8ff')+';">'+v+(isOut?' ⚠️':'')+'</span>'+
             '</div>'+
             '<div style="height:6px;background:rgba(255,255,255,0.12);border-radius:3px;position:relative;">'+
-              '<div style="position:absolute;width:14px;height:14px;background:'+(isOut?'#ff4f6e':'#f5c842')+';border-radius:50%;top:-4px;left:calc('+pct+'% - 7px);border:2px solid rgba(0,0,0,0.3);box-shadow:0 2px 4px rgba(0,0,0,0.3);"></div>'+
+              '<div style="position:absolute;width:14px;height:14px;background:'+(isOut?'#ff4f6e':'#fde68a')+';border-radius:50%;top:-4px;left:calc('+pct+'% - 7px);border:2px solid rgba(0,0,0,0.3);box-shadow:0 2px 4px rgba(0,0,0,0.3);"></div>'+
             '</div>'+
           '</div>';
         }).join('')+
@@ -1230,7 +1244,7 @@
 
       modal.innerHTML =
         '<div class="modal" onclick="document.getElementById(\'modal-container\').innerHTML=\'\'">'+
-          '<div class="modal-content" onclick="event.stopPropagation()" style="padding:20px;border-radius:28px 28px 0 0;background:#12214a;border-top:1px solid rgba(255,255,255,0.15);">'+
+          '<div class="modal-content" onclick="event.stopPropagation()" style="padding:20px;border-radius:28px 28px 0 0;background:#0d3b1e;border-top:1px solid rgba(255,255,255,0.15);">'+
             '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'+
               '<button id="cal-prev-month" style="background:#f5c842;border:none;border-radius:10px;width:36px;height:36px;font-size:18px;font-weight:900;color:#1a1a00;">◀</button>'+
               '<div style="font-family:Syne,sans-serif;font-size:16px;font-weight:800;color:#fff;">'+monthNames[month]+' '+year+'</div>'+
@@ -1630,7 +1644,7 @@
         var id=this.getAttribute('data-rx-id');
         var modal=document.getElementById('modal-container');
         modal.innerHTML='<div class="modal" onclick="document.getElementById(\'modal-container\').innerHTML=\'\'">'+
-          '<div class="modal-content" onclick="event.stopPropagation()" style="background:linear-gradient(180deg,#0e7490,#083d4f);border-top:1px solid rgba(255,255,255,0.15);padding-bottom:40px;">'+
+          '<div class="modal-content" onclick="event.stopPropagation()" style="background:linear-gradient(180deg,#14532d,#0d3b1e);border-top:1px solid rgba(255,255,255,0.15);padding-bottom:40px;">'+
             '<div style="text-align:center;font-size:32px;margin-bottom:8px;">⚠️</div>'+
             '<div style="font-family:Syne,sans-serif;font-size:15px;font-weight:800;color:#fff;text-align:center;margin-bottom:6px;">Remove this item?</div>'+
             '<div style="font-family:Syne,sans-serif;font-size:11px;color:rgba(255,255,255,0.55);text-align:center;margin-bottom:20px;">This will not affect the Meds schedule.</div>'+
@@ -1675,7 +1689,7 @@
       var today=new Date().toISOString().split('T')[0];
       modal.innerHTML=
         '<div class="modal" onclick="document.getElementById(\'modal-container\').innerHTML=\'\'">'+
-          '<div class="modal-content" onclick="event.stopPropagation()" style="background:linear-gradient(180deg,#0e7490,#083d4f);border-top:1px solid rgba(255,255,255,0.15);padding-bottom:40px;">'+
+          '<div class="modal-content" onclick="event.stopPropagation()" style="background:linear-gradient(180deg,#14532d,#0d3b1e);border-top:1px solid rgba(255,255,255,0.15);padding-bottom:40px;">'+
             '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:800;color:#fde68a;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:14px;">'+(isNew?'Add Item':'Edit Item')+'</div>'+
             // Category selector
             '<div style="font-family:Syne,sans-serif;font-size:8px;font-weight:800;color:rgba(255,255,255,0.50);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Category</div>'+
@@ -1755,7 +1769,7 @@
       '</div>';
     }).join('');
     modal.innerHTML='<div id="rx-alert" class="modal">'+
-      '<div class="modal-content" onclick="event.stopPropagation()" style="background:linear-gradient(160deg,#0e7490,#083d4f);border-top:2px solid rgba(230,57,70,0.50);padding-bottom:40px;">'+
+      '<div class="modal-content" onclick="event.stopPropagation()" style="background:linear-gradient(160deg,#14532d,#0d3b1e);border-top:2px solid rgba(230,57,70,0.50);padding-bottom:40px;">'+
         '<div style="text-align:center;font-size:36px;margin-bottom:8px;">⚠️</div>'+
         '<div style="font-family:Syne,sans-serif;font-size:16px;font-weight:800;color:#ff8080;text-align:center;margin-bottom:4px;">Low Supply Alert</div>'+
         '<div style="font-family:IBM Plex Mono,monospace;font-size:11px;color:rgba(255,255,255,0.55);text-align:center;margin-bottom:14px;">'+lowItems.length+' item'+(lowItems.length>1?'s':'')+' running low</div>'+
