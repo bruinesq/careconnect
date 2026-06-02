@@ -1454,7 +1454,6 @@
 
   // ─── RX PAGE ──────────────────────────────────────────────────────────────
 
-  // Default Rx data — medications imported from schedule + extras, supplies list
   var RX_DEFAULT_MEDS = [
     'Levothyroxine','Hydrocortisone','Keppra','Desmopressin','GH',
     'Cortef','Protein','Ipratropium','Sodium Chloride','Valtico','Testosterone'
@@ -1464,24 +1463,19 @@
     'Incontinence','Filters','CoughAssist Mask/Tube'
   ];
 
+  var rxSortMode = 'days'; // 'days' or 'category'
+
   function getRxData(){
     try{
       var raw=localStorage.getItem('rx_data');
-      if(raw){
-        var parsed=JSON.parse(raw);
-        if(parsed&&parsed.items&&parsed.items.length>0) return parsed;
-      }
+      if(raw){var parsed=JSON.parse(raw);if(parsed&&parsed.items&&parsed.items.length>0)return parsed;}
     }catch(e){}
-    // Build defaults if nothing saved
     var todayStr=new Date().toISOString().split('T')[0];
     var meds=RX_DEFAULT_MEDS.map(function(n){return{id:Date.now()+Math.random(),name:n,category:'meds',supply:30,refilled:todayStr,snoozed:false};});
     var supplies=RX_DEFAULT_SUPPLIES.map(function(n){return{id:Date.now()+Math.random(),name:n,category:'supplies',supply:30,refilled:todayStr,snoozed:false};});
-    var data={items:meds.concat(supplies)};
-    saveRxData(data);
-    return data;
+    var data={items:meds.concat(supplies)};saveRxData(data);return data;
   }
 
-  // Load Rx data from Supabase on startup and sync to localStorage
   function loadRxFromSupabase(){
     sbGet('settings','key=eq.rx_data&select=value').then(function(rows){
       if(rows&&rows.length>0&&rows[0].value){
@@ -1489,10 +1483,7 @@
           var parsed=JSON.parse(rows[0].value);
           if(parsed&&parsed.items&&parsed.items.length>0){
             localStorage.setItem('rx_data',rows[0].value);
-            // Re-render if currently on rx page
-            if(state.view==='rx'){
-              renderRx(document.getElementById('view-container'));
-            }
+            if(state.view==='rx') renderRx(document.getElementById('view-container'));
           }
         }catch(e){console.error('rx parse error',e);}
       }
@@ -1501,180 +1492,161 @@
 
   function saveRxData(data){
     localStorage.setItem('rx_data',JSON.stringify(data));
-    // Also persist to Supabase settings
     sbUpsert('settings',[{key:'rx_data',value:JSON.stringify(data)}]).catch(function(e){console.error('rx save error',e);});
   }
 
-  function calcRemaining(refilled, supply){
-    if(!refilled||!supply) return null;
+  function calcRemaining(refilled,supply){
+    if(!refilled||!supply)return null;
     var ref=new Date(refilled+'T12:00:00');
     var end=new Date(ref.getTime()+supply*24*60*60*1000);
-    var now=new Date();
-    var diff=Math.round((end-now)/(24*60*60*1000));
+    var diff=Math.round((end-new Date())/(24*60*60*1000));
     return diff;
   }
 
-  function sortRxItems(items){
-    return items.slice().sort(function(a,b){
-      var ra=calcRemaining(a.refilled,a.supply);
-      var rb=calcRemaining(b.refilled,b.supply);
-      if(ra===null) ra=9999; if(rb===null) rb=9999;
-      if(ra!==rb) return ra-rb;
-      return a.name.localeCompare(b.name);
-    });
-  }
-
   function renderRx(container){
-    // Always sync from Supabase first, then render from whatever is in localStorage
     sbGet('settings','key=eq.rx_data&select=value').then(function(rows){
       if(rows&&rows.length>0&&rows[0].value){
-        try{
-          var parsed=JSON.parse(rows[0].value);
-          if(parsed&&parsed.items&&parsed.items.length>0){
-            localStorage.setItem('rx_data',rows[0].value);
-          }
-        }catch(e){}
+        try{var p=JSON.parse(rows[0].value);if(p&&p.items&&p.items.length>0)localStorage.setItem('rx_data',rows[0].value);}catch(e){}
       }
       renderRxFromLocal(container);
-    }).catch(function(){
-      renderRxFromLocal(container);
-    });
+    }).catch(function(){renderRxFromLocal(container);});
   }
 
   function renderRxFromLocal(container){
     var data=getRxData();
-    var meds=sortRxItems(data.items.filter(function(i){return i.category==='meds';}));
-    var supplies=sortRxItems(data.items.filter(function(i){return i.category==='supplies';}));
 
-    // Check for low items — respect snooze window
+    // Check low items
     var now=Date.now();
     var lowItems=data.items.filter(function(i){
       var rem=calcRemaining(i.refilled,i.supply);
-      if(rem===null||rem>5) return false;
-      if(i.snoozed) return false;
-      if(i.snoozeUntil&&now<i.snoozeUntil) return false; // still in snooze window
+      if(rem===null||rem>5)return false;
+      if(i.snoozed)return false;
+      if(i.snoozeUntil&&now<i.snoozeUntil)return false;
       return true;
     });
     if(lowItems.length>0) setTimeout(function(){showRxAlert(lowItems,data);},400);
 
-    function itemHtml(item){
+    // Sort items
+    function sortItems(items){
+      return items.slice().sort(function(a,b){
+        var ra=calcRemaining(a.refilled,a.supply); var rb=calcRemaining(b.refilled,b.supply);
+        if(ra===null)ra=9999; if(rb===null)rb=9999;
+        if(rxSortMode==='category'){
+          if(a.category!==b.category)return a.category.localeCompare(b.category);
+        }
+        if(ra!==rb)return ra-rb;
+        return a.name.localeCompare(b.name);
+      });
+    }
+
+    var sorted=sortItems(data.items);
+
+    // Build item HTML — cream theme
+    function itemHtml(item,idx){
       var rem=calcRemaining(item.refilled,item.supply);
       var isLow=rem!==null&&rem<=5;
-      var remColor=isLow?'#ff8080':'#a7f3d0';
-      var remBg=isLow?'rgba(230,57,70,0.25)':'rgba(110,231,183,0.15)';
-      var remBorder=isLow?'1px solid rgba(230,57,70,0.50)':'1px solid rgba(110,231,183,0.30)';
-      var cardBg=isLow?'rgba(230,57,70,0.18)':'rgba(255,255,255,0.14)';
-      var cardBorder=isLow?'rgba(230,57,70,0.45)':'rgba(255,255,255,0.26)';
-      var refDisplay=item.refilled?(function(){var p=item.refilled.split('-');return (parseInt(p[1]))+'/'+parseInt(p[2])+'/'+p[0].slice(2);})():'—';
-      return '<div style="background:'+cardBg+';border:1px solid '+cardBorder+';border-radius:14px;padding:10px 12px;margin-bottom:6px;cursor:pointer;" data-rx-id="'+item.id+'">'+
+      var isMed=item.category==='meds';
+      // Alternating row: even=f5f0e8, odd=ede7d9
+      var rowBg=idx%2===0?'#f5f0e8':'#ede7d9';
+      var refDisplay=item.refilled?(function(){var p=item.refilled.split('-');return parseInt(p[1])+'/'+parseInt(p[2])+'/'+p[0].slice(2);})():'—';
+      var catIcon=isMed?'💊':'🧰';
+      var catColor=isMed?'#7A4F0B':'#4a7a4f';
+      var catBg=isMed?'#f0e6d0':'#ddf0dd';
+      var lowBg=isLow?'rgba(192,57,43,0.08)':'';
+      var lowBorder=isLow?'border-left:3px solid #c0392b;':'border-left:3px solid '+catColor+';';
+
+      return '<div style="background:'+(isLow?'#fde8e8':rowBg)+';'+lowBorder+'padding:11px 14px;cursor:pointer;border-bottom:0.5px solid #cdc7bb;" data-rx-id="'+item.id+'">'+
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">'+
-          '<span style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;color:#ffffff;text-shadow:0 1px 2px rgba(0,0,0,0.3);">'+item.name+'</span>'+
-          '<div style="display:flex;gap:8px;align-items:center;">'+
-            (isLow?'<span style="background:#e63946;color:#fff;font-size:8px;font-weight:800;padding:2px 6px;border-radius:999px;font-family:Syne,sans-serif;">LOW</span>':'')+
-            '<button class="rx-del-btn" data-rx-id="'+item.id+'" style="background:rgba(255,80,80,0.20);border:1px solid rgba(255,80,80,0.35);border-radius:7px;font-size:10px;font-weight:900;color:rgba(255,140,140,0.90);cursor:pointer;padding:2px 7px;font-family:Syne,sans-serif;">✕ Remove</button>'+
+          '<div style="display:flex;align-items:center;gap:6px;">'+
+            '<span style="font-size:13px;background:'+catBg+';border-radius:6px;padding:2px 5px;">'+catIcon+'</span>'+
+            '<span style="font-family:Syne,sans-serif;font-size:15px;font-weight:700;color:#1a120a;">'+item.name+'</span>'+
+            (isLow?'<span style="font-family:Syne,sans-serif;font-size:8px;font-weight:800;background:#c0392b;color:#fff;padding:2px 6px;border-radius:999px;letter-spacing:0.06em;">LOW</span>':'')+
           '</div>'+
+          '<button class="rx-del-btn" data-rx-id="'+item.id+'" style="font-size:10px;color:#a08060;background:none;border:0.5px solid #cdc7bb;border-radius:99px;padding:3px 9px;font-family:Syne,sans-serif;font-weight:700;cursor:pointer;" onclick="event.stopPropagation()">✕ Remove</button>'+
         '</div>'+
-        '<div style="display:flex;gap:5px;">'+
-          '<div style="flex:1;background:rgba(0,0,0,0.25);border-radius:8px;padding:5px 6px;text-align:center;">'+
-            '<div style="font-family:Syne,sans-serif;font-size:7px;font-weight:800;color:rgba(255,255,255,0.60);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px;">Supply</div>'+
-            '<div style="font-family:IBM Plex Mono,monospace;font-size:13px;font-weight:600;color:#ffffff;">'+(item.supply?item.supply+' d':'—')+'</div>'+
+        '<div style="display:flex;gap:6px;">'+
+          '<div style="flex:1;background:#ede7d9;border-radius:7px;padding:5px 8px;text-align:center;border:0.5px solid #cdc7bb;">'+
+            '<div style="font-family:Syne,sans-serif;font-size:8px;font-weight:700;color:#8a7a60;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">Supply</div>'+
+            '<div style="font-family:IBM Plex Mono,monospace;font-size:13px;font-weight:700;color:#1a120a;">'+(item.supply?item.supply+' d':'—')+'</div>'+
           '</div>'+
-          '<div style="flex:1;background:rgba(0,0,0,0.25);border-radius:8px;padding:5px 6px;text-align:center;">'+
-            '<div style="font-family:Syne,sans-serif;font-size:7px;font-weight:800;color:rgba(255,255,255,0.60);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px;">Re-filled</div>'+
-            '<div style="font-family:IBM Plex Mono,monospace;font-size:13px;font-weight:600;color:#ffffff;">'+refDisplay+'</div>'+
+          '<div style="flex:1;background:#ede7d9;border-radius:7px;padding:5px 8px;text-align:center;border:0.5px solid #cdc7bb;">'+
+            '<div style="font-family:Syne,sans-serif;font-size:8px;font-weight:700;color:#8a7a60;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">Re-filled</div>'+
+            '<div style="font-family:IBM Plex Mono,monospace;font-size:12px;font-weight:700;color:#5a4a38;">'+refDisplay+'</div>'+
           '</div>'+
-          '<div style="flex:1;background:'+remBg+';border:'+remBorder+';border-radius:8px;padding:5px 6px;text-align:center;">'+
-            '<div style="font-family:Syne,sans-serif;font-size:7px;font-weight:800;color:'+remColor+';text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px;">Remaining</div>'+
-            '<div style="font-family:IBM Plex Mono,monospace;font-size:13px;font-weight:600;color:'+remColor+';">'+(rem!==null?rem+' d':'—')+'</div>'+
+          '<div style="flex:1;background:'+(isLow?'#fde8e8':'#ede7d9')+';border-radius:7px;padding:5px 8px;text-align:center;border:0.5px solid '+(isLow?'#f5b8b8':'#cdc7bb')+';">'+
+            '<div style="font-family:Syne,sans-serif;font-size:8px;font-weight:700;color:'+(isLow?'#c0392b':'#8a7a60')+';text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">Remaining</div>'+
+            '<div style="font-family:IBM Plex Mono,monospace;font-size:13px;font-weight:700;color:'+(isLow?'#c0392b':'#7A4F0B')+';">'+(rem!==null?rem+' d':'—')+'</div>'+
           '</div>'+
         '</div>'+
       '</div>';
     }
 
-    var medsHtml=meds.map(itemHtml).join('');
-    var suppliesHtml=supplies.map(itemHtml).join('');
-
-    var secHdrStyle='font-family:Syne,sans-serif;font-size:9px;font-weight:800;color:#fde68a;text-transform:uppercase;letter-spacing:0.12em;padding:6px 8px;border-left:3px solid #fde68a;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;';
-    var addBtnStyle='background:rgba(253,230,138,0.12);border:1px dashed rgba(253,230,138,0.40);border-radius:12px;padding:8px;text-align:center;font-family:Syne,sans-serif;font-size:12px;font-weight:800;color:#fde68a;cursor:pointer;flex-shrink:0;margin-top:4px;';
+    var listHtml=sorted.map(function(item,idx){return itemHtml(item,idx);}).join('');
 
     container.innerHTML=
-      '<div style="background:linear-gradient(160deg,#14532d 0%,#166534 50%,#14532d 100%);height:100%;display:flex;flex-direction:column;overflow:hidden;padding:10px 10px 0;">'+
-        // Header bar
-        '<div style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.22);border-radius:14px;padding:8px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">'+
-          '<div>'+
-            '<div style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:#ffffff;letter-spacing:0.04em;">R<span style="font-size:9px;vertical-align:super;">x</span> Tracker</div>'+
-            '<div style="font-family:IBM Plex Mono,monospace;font-size:9px;color:rgba(255,255,255,0.55);">Tap item to edit · sorted by days left</div>'+
-          '</div>'+
-          '<button id="rx-add-btn" style="background:#fde68a;color:#0a3a47;border:none;border-radius:10px;font-family:Syne,sans-serif;font-weight:800;font-size:11px;padding:7px 14px;">＋ ADD</button>'+
-        '</div>'+
-
-        // ── MEDICATIONS — top half, scrollable ───────────────────────────
-        '<div style="flex:1;min-height:0;display:flex;flex-direction:column;background:rgba(0,0,0,0.12);border-radius:14px;margin-bottom:6px;overflow:hidden;">'+
-          '<div style="'+secHdrStyle+'margin:0;">'+
-            '<span>💊 Medications</span>'+
-            '<span style="font-family:IBM Plex Mono,monospace;font-size:9px;color:rgba(255,255,255,0.45);font-weight:400;">'+meds.length+'</span>'+
-          '</div>'+
-          '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:6px 8px 4px;min-height:0;">'+
-            medsHtml+
-            '<div id="rx-add-med" style="'+addBtnStyle+'">＋ Add Medication</div>'+
+      '<div style="background:#f5f0e8;height:100%;display:flex;flex-direction:column;overflow:hidden;">'+
+        // Header
+        '<div style="background:#f5f0e8;padding:10px 14px 0;flex-shrink:0;border-bottom:0.5px solid #cdc7bb;">'+
+          '<div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;">'+
+            // Sort button — ghost, no border
+            '<button id="rx-sort-btn" style="background:none;border:none;font-family:Syne,sans-serif;font-size:12px;font-weight:700;color:#7A4F0B;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;">'+
+              '⇅ '+(rxSortMode==='days'?'By Days Left':'By Category')+
+            '</button>'+
+            // Add button
+            '<button id="rx-add-btn" style="background:#7A4F0B;color:#f5f0e8;border:none;border-radius:8px;font-family:Syne,sans-serif;font-weight:700;font-size:12px;padding:7px 14px;cursor:pointer;">＋ Add</button>'+
           '</div>'+
         '</div>'+
-
-        // ── SUPPLIES — bottom half, scrollable ───────────────────────────
-        '<div style="flex:1;min-height:0;display:flex;flex-direction:column;background:rgba(0,0,0,0.12);border-radius:14px;margin-bottom:10px;overflow:hidden;">'+
-          '<div style="'+secHdrStyle+'margin:0;">'+
-            '<span>🧰 Supplies</span>'+
-            '<span style="font-family:IBM Plex Mono,monospace;font-size:9px;color:rgba(255,255,255,0.45);font-weight:400;">'+supplies.length+'</span>'+
-          '</div>'+
-          '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:6px 8px 4px;min-height:0;">'+
-            suppliesHtml+
-            '<div id="rx-add-sup" style="'+addBtnStyle+'">＋ Add Supply</div>'+
-          '</div>'+
+        // Single scrollable list
+        '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;min-height:0;">'+
+          listHtml+
+          // Bottom spacer
+          '<div style="height:16px;background:#f5f0e8;"></div>'+
         '</div>'+
       '</div>';
 
-    // Wire buttons
+    // Sort toggle
+    document.getElementById('rx-sort-btn').addEventListener('click',function(){
+      rxSortMode=rxSortMode==='days'?'category':'days';
+      renderRxFromLocal(container);
+    });
+    // Add button
     document.getElementById('rx-add-btn').addEventListener('click',function(){showRxEditModal(null,null,data);});
-    document.getElementById('rx-add-med').addEventListener('click',function(){showRxEditModal(null,'meds',data);});
-    document.getElementById('rx-add-sup').addEventListener('click',function(){showRxEditModal(null,'supplies',data);});
-
+    // Remove buttons
     document.querySelectorAll('.rx-del-btn').forEach(function(btn){
       btn.addEventListener('click',function(e){
         e.stopPropagation();
         var id=this.getAttribute('data-rx-id');
         var modal=document.getElementById('modal-container');
         modal.innerHTML='<div class="modal" onclick="document.getElementById(\'modal-container\').innerHTML=\'\'">'+
-          '<div class="modal-content" onclick="event.stopPropagation()" style="background:linear-gradient(180deg,#14532d,#0d3b1e);border-top:1px solid rgba(255,255,255,0.15);padding-bottom:40px;">'+
+          '<div class="modal-content" onclick="event.stopPropagation()" style="background:#f5f0e8;border-top:2px solid #cdc7bb;padding-bottom:40px;">'+
             '<div style="text-align:center;font-size:32px;margin-bottom:8px;">⚠️</div>'+
-            '<div style="font-family:Syne,sans-serif;font-size:15px;font-weight:800;color:#fff;text-align:center;margin-bottom:6px;">Remove this item?</div>'+
-            '<div style="font-family:Syne,sans-serif;font-size:11px;color:rgba(255,255,255,0.55);text-align:center;margin-bottom:20px;">This will not affect the Meds schedule.</div>'+
+            '<div style="font-family:Syne,sans-serif;font-size:15px;font-weight:700;color:#1a120a;text-align:center;margin-bottom:6px;">Remove this item?</div>'+
+            '<div style="font-family:Syne,sans-serif;font-size:11px;color:#8a7a60;text-align:center;margin-bottom:20px;">Does not affect the Meds schedule.</div>'+
             '<div style="display:flex;gap:10px;">'+
-              '<button id="rx-del-no" style="flex:1;padding:14px;border-radius:14px;font-family:Syne,sans-serif;font-weight:800;font-size:14px;background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.22);">KEEP</button>'+
-              '<button id="rx-del-yes" style="flex:1;padding:14px;border-radius:14px;font-family:Syne,sans-serif;font-weight:800;font-size:14px;background:#e63946;color:#fff;border:none;">REMOVE</button>'+
+              '<button id="rx-del-no" style="flex:1;padding:14px;border-radius:8px;font-family:Syne,sans-serif;font-weight:700;font-size:14px;background:#ede7d9;color:#5a4a38;border:0.5px solid #cdc7bb;">KEEP</button>'+
+              '<button id="rx-del-yes" style="flex:1;padding:14px;border-radius:8px;font-family:Syne,sans-serif;font-weight:700;font-size:14px;background:#c0392b;color:#f5f0e8;border:none;">REMOVE</button>'+
             '</div>'+
           '</div>'+
         '</div>';
         document.getElementById('rx-del-no').addEventListener('click',function(){modal.innerHTML='';});
         document.getElementById('rx-del-yes').addEventListener('click',function(){
           data.items=data.items.filter(function(i){return String(i.id)!==String(id);});
-          saveRxData(data);
-          modal.innerHTML='';
-          renderRx(container);
+          saveRxData(data);modal.innerHTML='';renderRx(container);
         });
       });
     });
-
-    // Tap card to edit (but not the remove button)
+    // Tap card to edit
     document.querySelectorAll('[data-rx-id]').forEach(function(el){
       if(el.tagName==='DIV'){
         el.addEventListener('click',function(){
           var id=this.getAttribute('data-rx-id');
           var item=data.items.find(function(i){return String(i.id)===String(id);});
-          if(item) showRxEditModal(item,item.category,data);
+          if(item)showRxEditModal(item,item.category,data);
         });
       }
     });
   }
+
 
   // ── Rx Edit/Add Modal ─────────────────────────────────────────────────────
   function showRxEditModal(item, defaultCat, data){
@@ -1685,34 +1657,34 @@
     function renderModal(){
       var rem=calcRemaining(editItem.refilled,editItem.supply);
       var remDisplay=rem!==null?rem+' days':'—';
-      var remColor=rem!==null&&rem<=5?'#ff8080':'#6ee7b7';
+      var remColor=rem!==null&&rem<=5?'#c0392b':'#7A4F0B';
+      var remBg=rem!==null&&rem<=5?'#fde8e8':'#d4edda';
+      var remBorder=rem!==null&&rem<=5?'#f5b8b8':'#a8d5b5';
       var today=new Date().toISOString().split('T')[0];
+      var fieldStyle='width:100%;background:#f5f0e8;border:0.5px solid #cdc7bb;border-radius:8px;padding:12px;font-family:Syne,sans-serif;font-size:15px;font-weight:700;color:#1a120a;outline:none;margin-bottom:10px;';
+      var labelStyle='font-family:Syne,sans-serif;font-size:9px;font-weight:700;color:#8a7a60;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;';
       modal.innerHTML=
         '<div class="modal" onclick="document.getElementById(\'modal-container\').innerHTML=\'\'">'+
-          '<div class="modal-content" onclick="event.stopPropagation()" style="background:linear-gradient(180deg,#14532d,#0d3b1e);border-top:1px solid rgba(255,255,255,0.15);padding-bottom:40px;">'+
-            '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:800;color:#fde68a;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:14px;">'+(isNew?'Add Item':'Edit Item')+'</div>'+
-            // Category selector
-            '<div style="font-family:Syne,sans-serif;font-size:8px;font-weight:800;color:rgba(255,255,255,0.50);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Category</div>'+
-            '<div style="display:flex;gap:6px;margin-bottom:12px;">'+
-              '<button id="rx-cat-meds" style="flex:1;padding:10px;border-radius:10px;font-family:Syne,sans-serif;font-weight:800;font-size:11px;border:none;'+(editItem.category==='meds'?'background:#fde68a;color:#0a3a47;':'background:rgba(255,255,255,0.10);color:rgba(255,255,255,0.65);border:1px solid rgba(255,255,255,0.18);')+'">💊 Medications</button>'+
-              '<button id="rx-cat-sup" style="flex:1;padding:10px;border-radius:10px;font-family:Syne,sans-serif;font-weight:800;font-size:11px;border:none;'+(editItem.category==='supplies'?'background:#fde68a;color:#0a3a47;':'background:rgba(255,255,255,0.10);color:rgba(255,255,255,0.65);border:1px solid rgba(255,255,255,0.18);')+'">🧰 Supplies</button>'+
+          '<div class="modal-content" onclick="event.stopPropagation()" style="background:#f5f0e8;border-top:1.5px solid #cdc7bb;padding-bottom:40px;">'+
+            '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;color:#7A4F0B;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px;">'+(isNew?'Add Item':'Edit Item')+'</div>'+
+            // Category toggle
+            '<div style="'+labelStyle+'">Category</div>'+
+            '<div style="display:flex;gap:0;margin-bottom:12px;background:#ede7d9;border:1px solid #cdc7bb;border-radius:8px;overflow:hidden;">'+
+              '<button id="rx-cat-meds" style="flex:1;padding:10px;font-family:Syne,sans-serif;font-weight:700;font-size:12px;border:none;cursor:pointer;'+(editItem.category==='meds'?'background:#7A4F0B;color:#f5f0e8;':'background:transparent;color:#a89880;')+'">💊 Medications</button>'+
+              '<button id="rx-cat-sup" style="flex:1;padding:10px;font-family:Syne,sans-serif;font-weight:700;font-size:12px;border:none;cursor:pointer;'+(editItem.category==='supplies'?'background:#7A4F0B;color:#f5f0e8;':'background:transparent;color:#a89880;')+'">🧰 Supplies</button>'+
             '</div>'+
-            // Name
-            '<div style="font-family:Syne,sans-serif;font-size:8px;font-weight:800;color:rgba(255,255,255,0.50);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Item Name</div>'+
-            '<input id="rx-name-input" value="'+editItem.name+'" placeholder="Enter name..." style="width:100%;background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.20);border-radius:12px;padding:12px;font-family:Syne,sans-serif;font-size:14px;font-weight:700;color:#fff;outline:none;margin-bottom:10px;">'+
-            // Supply days
-            '<div style="font-family:Syne,sans-serif;font-size:8px;font-weight:800;color:rgba(255,255,255,0.50);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Supply (days)</div>'+
-            '<input id="rx-supply-input" type="number" value="'+editItem.supply+'" placeholder="30" style="width:100%;background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.20);border-radius:12px;padding:12px;font-family:IBM Plex Mono,monospace;font-size:18px;font-weight:600;color:#fff;outline:none;margin-bottom:10px;">'+
-            // Refilled date
-            '<div style="font-family:Syne,sans-serif;font-size:8px;font-weight:800;color:rgba(255,255,255,0.50);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Re-filled Date</div>'+
-            '<input id="rx-refilled-input" type="date" value="'+(editItem.refilled||today)+'" style="width:100%;background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.20);border-radius:12px;padding:12px;font-family:IBM Plex Mono,monospace;font-size:14px;font-weight:600;color:#fff;outline:none;margin-bottom:10px;">'+
-            // Remaining (auto)
-            '<div style="background:rgba(110,231,183,0.10);border:1px solid rgba(110,231,183,0.20);border-radius:12px;padding:10px 12px;margin-bottom:16px;">'+
-              '<div style="font-family:Syne,sans-serif;font-size:8px;font-weight:800;color:rgba(110,231,183,0.70);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px;">Remaining (auto-calculated)</div>'+
-              '<div id="rx-remaining-display" style="font-family:IBM Plex Mono,monospace;font-size:18px;font-weight:600;color:'+remColor+';">'+remDisplay+'</div>'+
+            '<div style="'+labelStyle+'">Item Name</div>'+
+            '<input id="rx-name-input" value="'+editItem.name+'" placeholder="Enter name..." style="'+fieldStyle+'">'+
+            '<div style="'+labelStyle+'">Supply (days)</div>'+
+            '<input id="rx-supply-input" type="number" value="'+editItem.supply+'" placeholder="30" style="'+fieldStyle+'font-family:IBM Plex Mono,monospace;font-size:18px;">'+
+            '<div style="'+labelStyle+'">Re-filled Date</div>'+
+            '<input id="rx-refilled-input" type="date" value="'+(editItem.refilled||today)+'" style="'+fieldStyle+'font-family:IBM Plex Mono,monospace;">'+
+            '<div style="background:'+remBg+';border:0.5px solid '+remBorder+';border-radius:8px;padding:10px 12px;margin-bottom:16px;">'+
+              '<div style="'+labelStyle+'color:'+remColor+';">Remaining (auto-calculated)</div>'+
+              '<div id="rx-remaining-display" style="font-family:IBM Plex Mono,monospace;font-size:20px;font-weight:700;color:'+remColor+';">'+remDisplay+'</div>'+
             '</div>'+
-            '<button id="rx-save-btn" style="width:100%;padding:16px;border-radius:16px;font-family:Syne,sans-serif;font-weight:800;font-size:15px;background:#fde68a;color:#0a3a47;border:none;margin-bottom:8px;">SAVE</button>'+
-            '<button id="rx-cancel-btn" style="width:100%;padding:12px;border-radius:14px;font-family:Syne,sans-serif;font-weight:800;font-size:13px;background:rgba(255,255,255,0.10);color:rgba(255,255,255,0.70);border:1px solid rgba(255,255,255,0.15);">CANCEL</button>'+
+            '<button id="rx-save-btn" style="width:100%;padding:14px;border-radius:8px;font-family:Syne,sans-serif;font-weight:700;font-size:15px;background:#7A4F0B;color:#f5f0e8;border:none;margin-bottom:8px;cursor:pointer;">SAVE</button>'+
+            '<button id="rx-cancel-btn" style="width:100%;padding:12px;border-radius:8px;font-family:Syne,sans-serif;font-weight:700;font-size:13px;background:#ede7d9;color:#5a4a38;border:0.5px solid #cdc7bb;cursor:pointer;">CANCEL</button>'+
           '</div>'+
         '</div>';
 
@@ -1730,7 +1702,9 @@
         var el=document.getElementById('rx-remaining-display');
         if(el){
           el.textContent=rem2!==null?rem2+' days':'—';
-          el.style.color=rem2!==null&&rem2<=5?'#ff8080':'#6ee7b7';
+          el.style.color=rem2!==null&&rem2<=5?'#c0392b':'#7A4F0B';
+          el.parentElement.style.background=rem2!==null&&rem2<=5?'#fde8e8':'#d4edda';
+          el.parentElement.style.borderColor=rem2!==null&&rem2<=5?'#f5b8b8':'#a8d5b5';
         }
       }
       document.getElementById('rx-supply-input').addEventListener('input',updateRemaining);
@@ -1763,20 +1737,20 @@
     if(modal.innerHTML.includes('rx-alert')) return; // already showing
     var itemsHtml=lowItems.map(function(i){
       var rem=calcRemaining(i.refilled,i.supply);
-      return '<div style="background:rgba(230,57,70,0.15);border:1px solid rgba(230,57,70,0.30);border-radius:10px;padding:8px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">'+
-        '<span style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;color:#fff;">'+i.name+'</span>'+
-        '<span style="font-family:IBM Plex Mono,monospace;font-size:12px;font-weight:600;color:#ff8080;">'+(rem!==null?rem+' days left':'—')+'</span>'+
+      return '<div style="background:#fde8e8;border:0.5px solid #f5b8b8;border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">'+
+        '<span style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;color:#1a120a;">'+i.name+'</span>'+
+        '<span style="font-family:IBM Plex Mono,monospace;font-size:13px;font-weight:700;color:#c0392b;">'+(rem!==null?rem+' d left':'—')+'</span>'+
       '</div>';
     }).join('');
     modal.innerHTML='<div id="rx-alert" class="modal">'+
-      '<div class="modal-content" onclick="event.stopPropagation()" style="background:linear-gradient(160deg,#14532d,#0d3b1e);border-top:2px solid rgba(230,57,70,0.50);padding-bottom:40px;">'+
+      '<div class="modal-content" onclick="event.stopPropagation()" style="background:#f5f0e8;border-top:2px solid #c0392b;padding-bottom:40px;">'+
         '<div style="text-align:center;font-size:36px;margin-bottom:8px;">⚠️</div>'+
-        '<div style="font-family:Syne,sans-serif;font-size:16px;font-weight:800;color:#ff8080;text-align:center;margin-bottom:4px;">Low Supply Alert</div>'+
-        '<div style="font-family:IBM Plex Mono,monospace;font-size:11px;color:rgba(255,255,255,0.55);text-align:center;margin-bottom:14px;">'+lowItems.length+' item'+(lowItems.length>1?'s':'')+' running low</div>'+
+        '<div style="font-family:Syne,sans-serif;font-size:16px;font-weight:700;color:#c0392b;text-align:center;margin-bottom:4px;">Low Supply Alert</div>'+
+        '<div style="font-family:Syne,sans-serif;font-size:11px;color:#8a7a60;text-align:center;margin-bottom:14px;">'+lowItems.length+' item'+(lowItems.length>1?'s':'')+' running low — order soon</div>'+
         itemsHtml+
         '<div style="display:flex;gap:8px;margin-top:14px;">'+
-          '<button id="rx-alert-remind" style="flex:1;padding:13px;border-radius:12px;font-family:Syne,sans-serif;font-weight:800;font-size:12px;background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.20);">⏰ Remind<br>in 3 hrs</button>'+
-          '<button id="rx-alert-stop" style="flex:1;padding:13px;border-radius:12px;font-family:Syne,sans-serif;font-weight:800;font-size:12px;background:#fde68a;color:#0a3a47;border:none;">✓ Stop<br>Reminding</button>'+
+          '<button id="rx-alert-remind" style="flex:1;padding:13px;border-radius:8px;font-family:Syne,sans-serif;font-weight:700;font-size:12px;background:#ede7d9;color:#5a4a38;border:0.5px solid #cdc7bb;cursor:pointer;">⏰ Remind<br>in 3 hrs</button>'+
+          '<button id="rx-alert-stop" style="flex:1;padding:13px;border-radius:8px;font-family:Syne,sans-serif;font-weight:700;font-size:12px;background:#7A4F0B;color:#f5f0e8;border:none;cursor:pointer;">✓ Stop<br>Reminding</button>'+
         '</div>'+
       '</div>'+
     '</div>';
