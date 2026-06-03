@@ -329,26 +329,16 @@
     var c=document.getElementById('view-container');if(!c)return;
     console.log('render: view='+state.view+' category='+state.category+' logs='+logs.length);
 
-    // Switch header color based on active page
+    // Header always cream — no switching needed
     var header=document.querySelector('header');
-    var isGreen=(state.view==='rx'||state.view==='labs'||(state.view==='dash'&&state.category==='Meds'));
-    if(header){
-      header.style.background=isGreen
-        ?'linear-gradient(135deg,#0d3b1e,#14532d)'
-        :'linear-gradient(135deg,#083d4f,#0e7490)';
-    }
-    // Title color
-    var titles=document.querySelectorAll('header div div');
-    if(titles.length>=2){
-      titles[0].style.color=isGreen?'#fde68a':'#fde68a'; // gold stays gold on both
-    }
+    if(header) header.style.background='#f5f0e8';
     ['meds','tasks','fluids','logs','labs','dash','rx'].forEach(function(t){
       var b=document.getElementById('btn-'+t);if(!b)return;
       var active=(t==='meds'  && state.view==='dash' && state.category==='Meds')
               ||(t==='tasks'  && state.view==='dash' && state.category==='Tasks')
               ||(t==='dash'   && state.view==='dash')
               ||(t===state.view && state.view!=='dash');
-      b.style.color=active?(state.view==='dash'&&state.category==='Meds'?'#f5c842':'#fde68a'):(state.view==='dash'&&state.category==='Meds'?'#2a3a5a':'#1a3a3a');
+      b.style.color=active?'#7A4F0B':'#8a7a60';
     });
     if(state.view==='dash')renderDash(c,logs);
     else if(state.view==='fluids')renderInOutput(c,logs);
@@ -425,34 +415,34 @@
           var today=getAdjustedDateString();
           var loggedToday=logs.some(function(l){return l.date===today&&l.type==='Medication'&&(l.amount||'').toLowerCase().includes('gh');});
           var displayDose=loggedToday?lastDose:lastDose+1;
-          return '<span style="font-size:10px;font-weight:700;font-family:IBM Plex Mono,monospace;background:#f5c842;color:#1a1a00;padding:1px 8px;border-radius:999px;margin-left:6px;">'+displayDose+'/24</span>';
+          return '<span style="font-size:10px;font-weight:700;font-family:IBM Plex Mono,monospace;background:#7A4F0B;color:#f5f0e8;padding:1px 8px;border-radius:999px;margin-left:6px;">'+displayDose+'/24</span>';
         })();
         var origIdx=items.indexOf(item);
-        var btnBg='rgba(255,255,255,'+(done?'0.06':'0.10')+')';
-        var btnBorder='rgba(255,255,255,'+(done?'0.10':'0.18')+')';
-        var btnColor='#fff';
+        var btnBg=done?'#ede7d9':'#f5f0e8';
+        var btnBorder='#cdc7bb';
+        var btnColor='#1a120a';
         var stmpHtml=done?'<span style="font-family:IBM Plex Mono,monospace;font-size:9px;font-weight:500;color:#0f1e5c;background:rgba(255,255,255,0.92);border-radius:6px;padding:2px 7px;text-align:right;line-height:1.3;white-space:nowrap;">DONE '+done.time+'<br>'+done.caregiver+'</span>':'';
         return '<button draggable="true" ondragstart="dragStart(event,\''+sk+'\',\''+group+'\','+origIdx+')" ondragover="dragOver(event)" ondrop="dragDrop(event,\''+sk+'\',\''+group+'\','+origIdx+')" ondragend="dragEnd(event)" onclick="handleLog(\''+state.category+'\',\''+item+'\',\''+group+'\')" style="width:100%;border:1px solid '+btnBorder+';font-size:15px;font-weight:600;font-family:Syne,sans-serif;padding:10px 14px;border-radius:14px;background:'+btnBg+';color:'+btnColor+';display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;text-align:left;opacity:'+(done?'0.65':'1')+'"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70%;">'+item+doseLabel+ghBadge+'</span>'+stmpHtml+'</button>';
       }).join('');
 
       var allDone=doneGroups.indexOf(group)!==-1;
       var isMedsView=state.category==='Meds';
-      var hdrColor=isMedsView?(allDone?'rgba(253,230,138,0.40)':'#fde68a'):(allDone?'rgba(253,230,138,0.40)':'#fde68a');
-      var hdrBorder=isMedsView?(allDone?'rgba(253,230,138,0.25)':'#fde68a'):(allDone?'rgba(253,230,138,0.25)':'#fde68a');
+      var hdrColor=allDone?'#cdc7bb':'#7A4F0B';
+      var hdrBorder=allDone?'#cdc7bb':'#7A4F0B';
       return '<div style="font-family:Syne,sans-serif;font-size:10px;font-weight:800;color:'+hdrColor+';text-transform:uppercase;letter-spacing:0.10em;margin:10px 0 4px 2px;padding-left:8px;border-left:3px solid '+hdrBorder+';">'+group+(allDone?' ✓':'')+'</div>'+rowsHtml;
     }).join('');
 
     var isProxy=state.caregiver!==state.deviceCG;
     var isMedsView=state.category==='Meds';
-    var pageBg=isMedsView?'linear-gradient(160deg,#14532d 0%,#166534 50%,#14532d 100%)':'linear-gradient(160deg,#0e7490 0%,#0891b2 50%,#0e6989 100%)';
-    var cgBarBg='rgba(255,255,255,0.10)';
-    var cgBarBorder='rgba(255,255,255,0.18)';
-    var logAsColor='rgba(255,255,255,0.80)';
-    var proxyColor='#f5c842';
-    var cgActiveBg=isMedsView?'#f5c842':'#fde68a';
-    var cgActiveColor='#1a1a00';
+    var pageBg='#f5f0e8';
+    var cgBarBg='#ede7d9';
+    var cgBarBorder='#cdc7bb';
+    var logAsColor='#5a4a38';
+    var proxyColor='#7A4F0B';
+    var cgActiveBg='#7A4F0B';
+    var cgActiveColor='#f5f0e8';
     var cgInactiveBg=isMedsView?'rgba(255,255,255,0.12)':'rgba(45,26,0,0.08)';
-    var cgInactiveColor='rgba(255,255,255,0.75)';
+    var cgInactiveColor='#8a7a60';
 
     // Short date format for display in User row
     var selDate=document.getElementById('date-navigator').value||getAdjustedDateString();
@@ -465,7 +455,7 @@
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'+
           '<div style="display:flex;align-items:center;gap:6px;">'+
             '<span style="font-family:Syne,sans-serif;font-size:11px;font-weight:800;color:'+(isProxy?proxyColor:logAsColor)+';text-transform:uppercase;letter-spacing:0.06em;">'+(isProxy?'⚠️ PROXY':'USER')+'</span>'+
-            '<button id="dash-edit-btn" style="background:none;border:none;font-size:16px;padding:0;line-height:1;">✏️</button>'+
+            '<button id="dash-edit-btn" style="background:none;border:none;font-size:16px;padding:0;line-height:1;color:#7A4F0B;">✏️</button>'+
           '</div>'+
           '<button id="travel-btn" style="font-size:16px;background:none;border:none;padding:0;'+(state.offset!==0?'filter:sepia(1) saturate(4) brightness(1.4);':'filter:grayscale(1) brightness(2);opacity:0.7;')+'">✈️</button>'+
         '</div>'+
@@ -1035,26 +1025,26 @@
         if(type==='Labs'){var ha=l.metadata&&l.metadata.includes('ALERT');labInfo=ha?'<span style="font-size:10px;font-weight:800;color:#dc2626;margin-left:6px;">⚠️ Out-of-range</span>':'';}
         var reportActions='';
         if(type==='Report'){try{var meta=JSON.parse(l.metadata||'{}');reportActions='<div style="display:flex;gap:6px;margin-top:6px;"><button onclick="shareReport(\''+meta.downloadUrl+'\',\''+meta.filename+'\',\'text\')" style="font-size:10px;font-weight:700;background:rgba(255,255,255,0.12);color:#fff;padding:3px 8px;border-radius:8px;border:1px solid rgba(255,255,255,0.20);">📱 Text</button><button onclick="shareReport(\''+meta.downloadUrl+'\',\''+meta.filename+'\',\'email\')" style="font-size:10px;font-weight:700;background:rgba(255,255,255,0.12);color:#fff;padding:3px 8px;border-radius:8px;border:1px solid rgba(255,255,255,0.20);">✉️ Email</button><a href="'+meta.viewUrl+'" target="_blank" style="font-size:10px;font-weight:700;background:rgba(255,255,255,0.12);color:#fff;padding:3px 8px;border-radius:8px;border:1px solid rgba(255,255,255,0.20);text-decoration:none;">👁 View</a></div>';}catch(e){}}
-        return'<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;margin-bottom:5px;border-radius:14px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.08);">'+
+        return'<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;margin-bottom:4px;border-radius:8px;border:0.5px solid #cdc7bb;background:#ede7d9;">'+
           '<div style="flex:1;min-width:0;">'+
             '<div style="display:flex;align-items:baseline;flex-wrap:wrap;gap:2px;">'+
-              '<span style="font-family:IBM Plex Mono,monospace;font-weight:500;font-size:13px;color:#fff;">'+l.amount+'</span>'+subDetail+labInfo+
+              '<span style="font-family:IBM Plex Mono,monospace;font-weight:700;font-size:13px;color:#1a120a;">'+l.amount+'</span>'+subDetail+labInfo+
             '</div>'+reportActions+
           '</div>'+
           '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">'+
             '<div style="text-align:right;">'+
-              '<div style="font-family:IBM Plex Mono,monospace;font-size:10px;font-weight:500;color:rgba(255,255,255,0.65);">'+l.time+'</div>'+
-              '<div style="font-family:Syne,sans-serif;font-size:9px;color:rgba(255,255,255,0.50);font-weight:600;">'+l.caregiver+'</div>'+
+              '<div style="font-family:IBM Plex Mono,monospace;font-size:10px;font-weight:600;color:#5a4a38;">'+l.time+'</div>'+
+              '<div style="font-family:Syne,sans-serif;font-size:9px;color:#8a7a60;font-weight:600;">'+l.caregiver+'</div>'+
             '</div>'+
-            '<button onclick="confirmDelete(\''+l.id+'\')" style="width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.15);font-size:11px;font-weight:900;color:rgba(255,255,255,0.70);display:flex;align-items:center;justify-content:center;">✕</button>'+
+            '<button onclick="confirmDelete(\''+l.id+'\')" style="width:26px;height:26px;border-radius:99px;background:none;border:0.5px solid #cdc7bb;font-size:10px;font-weight:700;color:#a08060;display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;">✕</button>'+
           '</div>'+
         '</div>';
       }).join('');
       return'<div style="margin-bottom:14px;">'+
         '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;padding:0 2px;">'+
           '<span>'+cfg.icon+'</span>'+
-          '<span style="font-family:Syne,sans-serif;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:#fde68a;">'+cfg.label+'</span>'+
-          '<span style="font-family:Syne,sans-serif;font-size:10px;font-weight:800;color:#1a1a00;background:#fde68a;padding:1px 8px;border-radius:999px;">'+entries.length+'</span>'+
+          '<span style="font-family:Syne,sans-serif;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:#7A4F0B;">'+cfg.label+'</span>'+
+          '<span style="font-family:Syne,sans-serif;font-size:10px;font-weight:800;color:#f5f0e8;background:#7A4F0B;padding:1px 8px;border-radius:999px;">'+entries.length+'</span>'+
         '</div>'+
         entriesHtml+
       '</div>';
@@ -1062,11 +1052,11 @@
     container.innerHTML=
       '<div style="background:linear-gradient(160deg,#0e7490 0%,#0891b2 50%,#0e6989 100%);display:flex;flex-direction:column;height:100%;">'+
         '<div style="padding:10px 14px 5px;flex-shrink:0;">'+
-          '<div style="font-family:Syne,sans-serif;font-size:10px;font-weight:800;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.08em;">📅 '+sel+'</div>'+
+          '<div style="font-family:Syne,sans-serif;font-size:10px;font-weight:800;color:#7A4F0B;text-transform:uppercase;letter-spacing:0.08em;">📅 '+sel+'</div>'+
         '</div>'+
         '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:none;padding:0 12px 24px;">'+
           (sourceLogs.length===0
-            ?'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:180px;opacity:0.3;"><div style="font-size:48px;margin-bottom:8px;">📋</div><div style="font-family:Syne,sans-serif;font-weight:700;font-style:italic;font-size:14px;color:#fff;">No entries for this date</div></div>'
+            ?'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:180px;"><div style="font-size:48px;margin-bottom:8px;">📋</div><div style="font-family:Syne,sans-serif;font-weight:700;font-style:italic;font-size:14px;color:#8a7a60;">No entries for this date</div></div>'
             :sectionsHtml)+
         '</div>'+
       '</div>';
@@ -1118,49 +1108,49 @@
 
     var labResultsHtml=displayLab?(function(){
       var res=JSON.parse(displayLab.metadata.replace(' ALERT','')||'{}');
-      return'<div style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);padding:14px;border-radius:18px;">'+
+      return'<div style="background:#ede7d9;border:0.5px solid #cdc7bb;padding:14px;border-radius:12px;">'+
         Object.keys(res).map(function(k){
           var v=parseFloat(res[k]),ref=LAB_REF[k];if(!ref)return'';
           var isOut=v<ref.min||v>ref.max;
           var pct=Math.min(100,Math.max(0,((v-ref.min)/(ref.max-ref.min))*100));
           return'<div style="margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.10);cursor:pointer;" onclick="show30DayTrend(\''+k+'\')">'+
             '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">'+
-              '<span style="font-family:Syne,sans-serif;font-weight:700;font-size:13px;color:#fff;">'+k+
-                '<span style="font-size:9px;font-weight:500;color:rgba(255,255,255,0.50);margin-left:4px;">('+ref.min+'–'+ref.max+' '+ref.unit+')</span>'+
+              '<span style="font-family:Syne,sans-serif;font-weight:700;font-size:13px;color:#1a120a;">'+k+
+                '<span style="font-size:9px;font-weight:500;color:#8a7a60;margin-left:4px;">('+ref.min+'–'+ref.max+' '+ref.unit+')</span>'+
               '</span>'+
               '<span style="font-family:IBM Plex Mono,monospace;font-weight:600;font-size:14px;color:'+(isOut?'#ff4f6e':'#38e8ff')+';">'+v+(isOut?' ⚠️':'')+'</span>'+
             '</div>'+
-            '<div style="height:6px;background:rgba(255,255,255,0.12);border-radius:3px;position:relative;">'+
-              '<div style="position:absolute;width:14px;height:14px;background:'+(isOut?'#ff4f6e':'#fde68a')+';border-radius:50%;top:-4px;left:calc('+pct+'% - 7px);border:2px solid rgba(0,0,0,0.3);box-shadow:0 2px 4px rgba(0,0,0,0.3);"></div>'+
+            '<div style="height:5px;background:#cdc7bb;border-radius:3px;position:relative;">'+
+              '<div style="position:absolute;width:14px;height:14px;background:'+(isOut?'#c0392b':'#7A4F0B')+';border-radius:50%;top:-4px;left:calc('+pct+'% - 7px);border:2px solid #f5f0e8;box-shadow:0 1px 3px rgba(0,0,0,0.15);"></div>'+
             '</div>'+
           '</div>';
         }).join('')+
       '</div>';
-    })():'<div style="text-align:center;padding:40px 0;opacity:0.4;font-style:italic;color:#fff;font-family:Syne,sans-serif;font-weight:700;">No lab records yet.<br>Tap ENTER to add results.</div>';
+    })():'<div style="text-align:center;padding:40px 0;font-style:italic;color:#8a7a60;font-family:Syne,sans-serif;font-weight:700;">No lab records yet.<br>Tap ENTER to add results.</div>';
 
     // Build set of dates that have lab results for the date picker
     var labDates={};
     getLabsSorted().forEach(function(l){labDates[l.date]=true;});
 
-    var navBtnStyle='font-family:Syne,sans-serif;font-weight:800;font-size:11px;color:#fff;border:none;padding:9px 4px;border-radius:12px;flex:1;';
+    var navBtnStyle='font-family:Syne,sans-serif;font-weight:700;font-size:11px;color:#1a120a;border:none;padding:9px 4px;border-radius:8px;flex:1;cursor:pointer;';
     container.innerHTML=
       '<div style="background:linear-gradient(160deg,#14532d 0%,#166534 50%,#14532d 100%);height:100%;padding:10px;display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;">'+
       // Row 1: ENTER | PREV | NEXT | PDF
       '<div style="display:flex;gap:4px;margin-bottom:4px;flex-shrink:0;">'+
-        '<button id="lab-enter-btn" style="'+navBtnStyle+'background:#fde68a;color:#1a1a00;">ENTER</button>'+
-        '<button id="lab-prev-btn" style="'+navBtnStyle+'background:rgba(255,255,255,0.12);">◀ OLDER</button>'+
-        '<button id="lab-next-btn" style="'+navBtnStyle+'background:rgba(255,255,255,0.12);">NEWER ▶</button>'+
-        '<button id="lab-pdf-btn" style="'+navBtnStyle+'background:rgba(255,255,255,0.12);">PDF</button>'+
+        '<button id="lab-enter-btn" style="'+navBtnStyle+'background:#7A4F0B;color:#f5f0e8;">ENTER</button>'+
+        '<button id="lab-prev-btn" style="'+navBtnStyle+'background:#ede7d9;border:0.5px solid #cdc7bb;">◀ OLDER</button>'+
+        '<button id="lab-next-btn" style="'+navBtnStyle+'background:#ede7d9;border:0.5px solid #cdc7bb;">NEWER ▶</button>'+
+        '<button id="lab-pdf-btn" style="'+navBtnStyle+'background:#ede7d9;border:0.5px solid #cdc7bb;">PDF</button>'+
       '</div>'+
       // Row 2: ANALYSIS | date+time+delete button | 🔍 transparent
       '<div style="display:flex;gap:4px;margin-bottom:6px;align-items:stretch;flex-shrink:0;">'+
-        '<button id="lab-analysis-btn" style="'+navBtnStyle+'background:rgba(253,230,138,0.15);color:#fde68a;border:1px solid rgba(253,230,138,0.30);flex:1;">🔬 ANALYSIS</button>'+
+        '<button id="lab-analysis-btn" style="'+navBtnStyle+'background:#ede7d9;color:#7A4F0B;border:0.5px solid #7A4F0B;flex:1;">🔬 ANALYSIS</button>'+
         '<div style="flex:1;position:relative;">'+
           '<button id="lab-date-display" style="width:100%;height:100%;background:rgba(255,255,255,0.10);border-radius:12px;border:1px solid rgba(255,255,255,0.18);padding:6px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:default;">'+
-            '<div style="font-family:IBM Plex Mono,monospace;font-size:12px;font-weight:500;color:#fff;line-height:1.3;">'+testDateLabel+'</div>'+
-            '<div style="font-family:IBM Plex Mono,monospace;font-size:11px;font-weight:400;color:rgba(255,255,255,0.60);">'+(displayLab?displayLab.time:'—')+'</div>'+
+            '<div style="font-family:IBM Plex Mono,monospace;font-size:12px;font-weight:700;color:#1a120a;line-height:1.3;">'+testDateLabel+'</div>'+
+            '<div style="font-family:IBM Plex Mono,monospace;font-size:11px;font-weight:500;color:#8a7a60;">'+(displayLab?displayLab.time:'—')+'</div>'+
           '</button>'+
-          (displayLab?'<button id="lab-del-btn" style="position:absolute;top:3px;right:5px;background:none;border:none;font-size:11px;font-weight:900;color:rgba(255,255,255,0.55);line-height:1;padding:0;cursor:pointer;">✕</button>':'')+
+          (displayLab?'<button id="lab-del-btn" style="position:absolute;top:3px;right:5px;background:none;border:none;font-size:11px;font-weight:900;color:#a08060;line-height:1;padding:0;cursor:pointer;">✕</button>':'')+
         '</div>'+
         '<button id="lab-cal-btn" style="flex:0 0 auto;background:transparent;border:none;padding:0 8px;font-size:22px;cursor:pointer;filter:brightness(0.8);">🔍</button>'+
       '</div>'+
@@ -1573,9 +1563,9 @@
             '<div style="font-family:Syne,sans-serif;font-size:8px;font-weight:700;color:#8a7a60;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">Re-filled</div>'+
             '<div style="font-family:IBM Plex Mono,monospace;font-size:12px;font-weight:700;color:#5a4a38;">'+refDisplay+'</div>'+
           '</div>'+
-          '<div style="flex:1;background:'+(isLow?'#fde8e8':'#ede7d9')+';border-radius:7px;padding:5px 8px;text-align:center;border:0.5px solid '+(isLow?'#f5b8b8':'#cdc7bb')+';">'+
-            '<div style="font-family:Syne,sans-serif;font-size:8px;font-weight:700;color:'+(isLow?'#c0392b':'#8a7a60')+';text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">Remaining</div>'+
-            '<div style="font-family:IBM Plex Mono,monospace;font-size:13px;font-weight:700;color:'+(isLow?'#c0392b':'#7A4F0B')+';">'+(rem!==null?rem+' d':'—')+'</div>'+
+          '<div style="flex:1;background:'+(isLow?'#c0392b':'#ede7d9')+';border-radius:7px;padding:5px 8px;text-align:center;border:0.5px solid '+(isLow?'#922b21':'#cdc7bb')+';">'+
+            '<div style="font-family:Syne,sans-serif;font-size:8px;font-weight:700;color:'+(isLow?'rgba(255,255,255,0.80)':'#8a7a60')+';text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">Remaining</div>'+
+            '<div style="font-family:IBM Plex Mono,monospace;font-size:13px;font-weight:700;color:'+(isLow?'#ffffff':'#7A4F0B')+';">'+(rem!==null?rem+' d':'—')+'</div>'+
           '</div>'+
         '</div>'+
       '</div>';
