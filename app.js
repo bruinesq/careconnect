@@ -1121,8 +1121,9 @@
     var h=now.getHours()%12||12;
     var m=now.getMinutes();
     var ap=now.getHours()>=12?'PM':'AM';
-    var currentTime=isEdit?existingNote.time:(h+':'+(m<10?'0':'')+m+' '+ap);
-    var initialText=isEdit?existingNote.text:'';
+    var defaultTime=h+':'+(m<10?'0':'')+m+' '+ap;
+    var initialTime=isEdit?existingNote.time:defaultTime;
+    var initialText=isEdit?(existingNote.text||''):'';
 
     modal.innerHTML=
       '<div class="modal" onclick="document.getElementById(\'modal-container\').innerHTML=\'\'">'+
@@ -1131,37 +1132,16 @@
             '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;color:#4a5899;text-transform:uppercase;letter-spacing:0.08em;">'+(isEdit?'✏️ Edit Note':'📝 Add Note')+'</div>'+
             '<span style="font-family:IBM Plex Mono,monospace;font-size:10px;color:#8a7a60;">'+dateStr+'</span>'+
           '</div>'+
+          // Note textarea
           '<div style="font-family:Syne,sans-serif;font-size:9px;font-weight:700;color:#8a7a60;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">Note</div>'+
-          '<textarea id="note-text-input" rows="4" style="width:100%;background:#ede7d9;border:0.5px solid #cdc7bb;border-radius:8px;padding:12px;font-family:Syne,sans-serif;font-size:14px;font-weight:600;color:#1a120a;outline:none;resize:none;margin-bottom:12px;line-height:1.45;">'+initialText+'</textarea>'+
-          '<div style="font-family:Syne,sans-serif;font-size:9px;font-weight:700;color:#8a7a60;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">Time</div>'+
-          '<div style="background:#ede7d9;border:0.5px solid #cdc7bb;border-radius:8px;padding:11px 12px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">'+
-            '<span id="note-time-display" style="font-family:IBM Plex Mono,monospace;font-size:17px;font-weight:700;color:#1a120a;">'+currentTime+'</span>'+
-            '<button id="note-time-edit" style="background:none;border:none;font-family:Syne,sans-serif;font-size:11px;font-weight:700;color:#7A4F0B;cursor:pointer;">✏️ Edit</button>'+
-          '</div>'+
+          '<textarea id="note-text-input" rows="4" placeholder="Describe the event..." style="width:100%;background:#ede7d9;border:0.5px solid #cdc7bb;border-radius:8px;padding:12px;font-family:Syne,sans-serif;font-size:14px;font-weight:600;color:#1a120a;outline:none;resize:none;margin-bottom:12px;line-height:1.45;">'+initialText+'</textarea>'+
+          // Time — simple text input, no keypad
+          '<div style="font-family:Syne,sans-serif;font-size:9px;font-weight:700;color:#8a7a60;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">Time <span style="font-weight:500;text-transform:none;letter-spacing:0;">(e.g. 2:30 PM)</span></div>'+
+          '<input id="note-time-input" type="text" value="'+initialTime+'" style="width:100%;background:#ede7d9;border:0.5px solid #cdc7bb;border-radius:8px;padding:12px;font-family:IBM Plex Mono,monospace;font-size:17px;font-weight:700;color:#1a120a;outline:none;margin-bottom:16px;">'+
           '<button id="note-save-btn" style="width:100%;padding:14px;border-radius:8px;font-family:Syne,sans-serif;font-weight:700;font-size:15px;background:#4a5899;color:#fff;border:none;margin-bottom:8px;cursor:pointer;">'+(isEdit?'UPDATE NOTE':'SAVE NOTE')+'</button>'+
           '<button id="note-cancel-btn" style="width:100%;padding:12px;border-radius:8px;font-family:Syne,sans-serif;font-weight:700;font-size:13px;background:#ede7d9;color:#5a4a38;border:0.5px solid #cdc7bb;cursor:pointer;">CANCEL</button>'+
         '</div>'+
       '</div>';
-
-    var savedTime=currentTime;
-
-    document.getElementById('note-time-edit').addEventListener('click',function(){
-      var currentText=document.getElementById('note-text-input').value;
-      renderKeypad({
-        title:'📝 Note Time',
-        initTime:savedTime,
-        onConfirm:function(kp){
-          savedTime=kp.timeStr;
-          // Reopen modal preserving typed text
-          var noteWithText=isEdit
-            ?{id:existingNote.id,text:currentText,time:savedTime}
-            :{text:currentText,time:savedTime};
-          showAddNoteModal(dateStr, isEdit?noteWithText:null);
-          var el=document.getElementById('note-time-display');
-          if(el)el.textContent=savedTime;
-        }
-      });
-    });
 
     document.getElementById('note-cancel-btn').addEventListener('click',function(){
       modal.innerHTML='';
@@ -1169,35 +1149,37 @@
 
     document.getElementById('note-save-btn').addEventListener('click',function(){
       var text=(document.getElementById('note-text-input').value||'').trim();
+      var time=(document.getElementById('note-time-input').value||'').trim()||initialTime;
       if(!text){showToast('Please enter a note','error');return;}
       var cg=state.caregiver||'Unknown';
+      var newEntry={date:dateStr,type:'Note',amount:text,time:time,caregiver:cg,metadata:''};
 
       if(isEdit){
-        // Delete old entry then insert updated one
+        // Update: delete old, insert new in sequence
         sbDelete('logs', existingNote.id)
           .then(function(){
-            return sbInsert('logs',[{
-              date:dateStr, type:'Note', amount:text,
-              time:savedTime, caregiver:cg, metadata:''
-            }]);
+            return sbInsert('logs',[newEntry]);
           })
           .then(function(){
             modal.innerHTML='';
             showToast('Note updated ✓','success');
             loadData();
           })
-          .catch(function(e){showToast('Update error','error');console.error(e);});
+          .catch(function(e){
+            showToast('Update error','error');
+            console.error('note update error',e);
+          });
       } else {
-        sbInsert('logs',[{
-          date:dateStr, type:'Note', amount:text,
-          time:savedTime, caregiver:cg, metadata:''
-        }])
+        sbInsert('logs',[newEntry])
           .then(function(){
             modal.innerHTML='';
             showToast('Note saved ✓','success');
             loadData();
           })
-          .catch(function(e){showToast('Save error','error');console.error(e);});
+          .catch(function(e){
+            showToast('Save error','error');
+            console.error('note save error',e);
+          });
       }
     });
   }
