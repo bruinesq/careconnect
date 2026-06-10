@@ -1015,8 +1015,9 @@
         return '<div style="background:#eef0f8;border:0.5px solid #b0b8d8;border-left:3px solid #4a5899;border-radius:8px;padding:9px 11px;margin-bottom:5px;">'+
           '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">'+
             '<span style="font-family:Syne,sans-serif;font-size:8px;font-weight:800;background:#4a5899;color:#fff;padding:2px 7px;border-radius:999px;letter-spacing:0.06em;text-transform:uppercase;">📝 Note</span>'+
-            '<div style="display:flex;align-items:center;gap:6px;">'+
+            '<div style="display:flex;align-items:center;gap:5px;">'+
               '<span style="font-family:IBM Plex Mono,monospace;font-size:10px;font-weight:600;color:#4a5899;">'+l.time+'</span>'+
+              '<button class="note-edit-btn" data-note-id="'+l.id+'" data-note-text="'+encodeURIComponent(l.amount)+'" data-note-time="'+l.time+'" style="background:none;border:0.5px solid #b0b8d8;border-radius:99px;font-size:9px;font-weight:700;color:#4a5899;padding:2px 7px;font-family:Syne,sans-serif;cursor:pointer;">✏️ Edit</button>'+
               '<button onclick="confirmDelete(\''+l.id+'\')" style="width:24px;height:24px;border-radius:99px;background:none;border:0.5px solid #b0b8d8;font-size:10px;font-weight:700;color:#7a7a9a;display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;cursor:pointer;">✕</button>'+
             '</div>'+
           '</div>'+
@@ -1096,54 +1097,68 @@
 
     // Wire Note button
     document.getElementById('add-note-btn').addEventListener('click',function(){
-      showAddNoteModal(sel);
+      showAddNoteModal(sel, null);
+    });
+    // Wire note edit buttons
+    document.querySelectorAll('.note-edit-btn').forEach(function(btn){
+      btn.addEventListener('click',function(e){
+        e.stopPropagation();
+        var existingNote={
+          id: this.getAttribute('data-note-id'),
+          text: decodeURIComponent(this.getAttribute('data-note-text')),
+          time: this.getAttribute('data-note-time')
+        };
+        showAddNoteModal(sel, existingNote);
+      });
     });
   }
 
-  // ── Add Note Modal ─────────────────────────────────────────────────────────
-  function showAddNoteModal(dateStr){
+  // ── Add / Edit Note Modal ──────────────────────────────────────────────────
+  function showAddNoteModal(dateStr, existingNote){
+    var isEdit=!!(existingNote&&existingNote.id);
     var modal=document.getElementById('modal-container');
     var now=new Date();
     var h=now.getHours()%12||12;
     var m=now.getMinutes();
     var ap=now.getHours()>=12?'PM':'AM';
-    var currentTime=h+':'+(m<10?'0':'')+m+' '+ap;
+    var currentTime=isEdit?existingNote.time:(h+':'+(m<10?'0':'')+m+' '+ap);
+    var initialText=isEdit?existingNote.text:'';
 
     modal.innerHTML=
       '<div class="modal" onclick="document.getElementById(\'modal-container\').innerHTML=\'\'">'+
         '<div class="modal-content" onclick="event.stopPropagation()" style="background:#f5f0e8;border-top:2px solid #4a5899;padding-bottom:40px;">'+
           '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'+
-            '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;color:#4a5899;text-transform:uppercase;letter-spacing:0.08em;">📝 Add Note</div>'+
+            '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;color:#4a5899;text-transform:uppercase;letter-spacing:0.08em;">'+(isEdit?'✏️ Edit Note':'📝 Add Note')+'</div>'+
             '<span style="font-family:IBM Plex Mono,monospace;font-size:10px;color:#8a7a60;">'+dateStr+'</span>'+
           '</div>'+
-          // Note text area
           '<div style="font-family:Syne,sans-serif;font-size:9px;font-weight:700;color:#8a7a60;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">Note</div>'+
-          '<textarea id="note-text-input" placeholder="Describe the event..." rows="4" style="width:100%;background:#ede7d9;border:0.5px solid #cdc7bb;border-radius:8px;padding:12px;font-family:Syne,sans-serif;font-size:14px;font-weight:600;color:#1a120a;outline:none;resize:none;margin-bottom:12px;line-height:1.45;"></textarea>'+
-          // Time field
+          '<textarea id="note-text-input" rows="4" style="width:100%;background:#ede7d9;border:0.5px solid #cdc7bb;border-radius:8px;padding:12px;font-family:Syne,sans-serif;font-size:14px;font-weight:600;color:#1a120a;outline:none;resize:none;margin-bottom:12px;line-height:1.45;">'+initialText+'</textarea>'+
           '<div style="font-family:Syne,sans-serif;font-size:9px;font-weight:700;color:#8a7a60;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">Time</div>'+
           '<div style="background:#ede7d9;border:0.5px solid #cdc7bb;border-radius:8px;padding:11px 12px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">'+
             '<span id="note-time-display" style="font-family:IBM Plex Mono,monospace;font-size:17px;font-weight:700;color:#1a120a;">'+currentTime+'</span>'+
             '<button id="note-time-edit" style="background:none;border:none;font-family:Syne,sans-serif;font-size:11px;font-weight:700;color:#7A4F0B;cursor:pointer;">✏️ Edit</button>'+
           '</div>'+
-          '<button id="note-save-btn" style="width:100%;padding:14px;border-radius:8px;font-family:Syne,sans-serif;font-weight:700;font-size:15px;background:#4a5899;color:#fff;border:none;margin-bottom:8px;cursor:pointer;">SAVE NOTE</button>'+
+          '<button id="note-save-btn" style="width:100%;padding:14px;border-radius:8px;font-family:Syne,sans-serif;font-weight:700;font-size:15px;background:#4a5899;color:#fff;border:none;margin-bottom:8px;cursor:pointer;">'+(isEdit?'UPDATE NOTE':'SAVE NOTE')+'</button>'+
           '<button id="note-cancel-btn" style="width:100%;padding:12px;border-radius:8px;font-family:Syne,sans-serif;font-weight:700;font-size:13px;background:#ede7d9;color:#5a4a38;border:0.5px solid #cdc7bb;cursor:pointer;">CANCEL</button>'+
         '</div>'+
       '</div>';
 
     var savedTime=currentTime;
 
-    // Edit time
     document.getElementById('note-time-edit').addEventListener('click',function(){
+      var currentText=document.getElementById('note-text-input').value;
       renderKeypad({
         title:'📝 Note Time',
         initTime:savedTime,
         onConfirm:function(kp){
           savedTime=kp.timeStr;
+          // Reopen modal preserving typed text
+          var noteWithText=isEdit
+            ?{id:existingNote.id,text:currentText,time:savedTime}
+            :{text:currentText,time:savedTime};
+          showAddNoteModal(dateStr, isEdit?noteWithText:null);
           var el=document.getElementById('note-time-display');
           if(el)el.textContent=savedTime;
-          // Restore note modal
-          showAddNoteModal(dateStr);
-          // Re-populate text if was filled
         }
       });
     });
@@ -1156,24 +1171,34 @@
       var text=(document.getElementById('note-text-input').value||'').trim();
       if(!text){showToast('Please enter a note','error');return;}
       var cg=state.caregiver||'Unknown';
-      var entry={
-        date:dateStr,
-        type:'Note',
-        amount:text,
-        time:savedTime,
-        caregiver:cg,
-        metadata:''
-      };
-      sbInsert('logs',[entry])
-        .then(function(){
-          modal.innerHTML='';
-          showToast('Note saved ✓','success');
-          loadData();
-        })
-        .catch(function(e){
-          showToast('Save error','error');
-          console.error(e);
-        });
+
+      if(isEdit){
+        // Delete old entry then insert updated one
+        sbDelete('logs', existingNote.id)
+          .then(function(){
+            return sbInsert('logs',[{
+              date:dateStr, type:'Note', amount:text,
+              time:savedTime, caregiver:cg, metadata:''
+            }]);
+          })
+          .then(function(){
+            modal.innerHTML='';
+            showToast('Note updated ✓','success');
+            loadData();
+          })
+          .catch(function(e){showToast('Update error','error');console.error(e);});
+      } else {
+        sbInsert('logs',[{
+          date:dateStr, type:'Note', amount:text,
+          time:savedTime, caregiver:cg, metadata:''
+        }])
+          .then(function(){
+            modal.innerHTML='';
+            showToast('Note saved ✓','success');
+            loadData();
+          })
+          .catch(function(e){showToast('Save error','error');console.error(e);});
+      }
     });
   }
 
