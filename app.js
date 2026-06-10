@@ -1006,13 +1006,41 @@
     var sel=document.getElementById('date-navigator').value;
     function sortNewest(a,b){var d=timeToMinutes(b.time)-timeToMinutes(a.time);return d!==0?d:parseInt(b.id||0)-parseInt(a.id||0);}
     var sourceLogs=todayLogs.slice().sort(sortNewest);
+
+    // ── Notes section ────────────────────────────────────────────────────────
+    var notes=sourceLogs.filter(function(l){return(l.type||'').toLowerCase()==='note';});
+    var notesHtml='';
+    if(notes.length){
+      var noteCards=notes.map(function(l){
+        return '<div style="background:#eef0f8;border:0.5px solid #b0b8d8;border-left:3px solid #4a5899;border-radius:8px;padding:9px 11px;margin-bottom:5px;">'+
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">'+
+            '<span style="font-family:Syne,sans-serif;font-size:8px;font-weight:800;background:#4a5899;color:#fff;padding:2px 7px;border-radius:999px;letter-spacing:0.06em;text-transform:uppercase;">📝 Note</span>'+
+            '<div style="display:flex;align-items:center;gap:6px;">'+
+              '<span style="font-family:IBM Plex Mono,monospace;font-size:10px;font-weight:600;color:#4a5899;">'+l.time+'</span>'+
+              '<button onclick="confirmDelete(\''+l.id+'\')" style="width:24px;height:24px;border-radius:99px;background:none;border:0.5px solid #b0b8d8;font-size:10px;font-weight:700;color:#7a7a9a;display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;cursor:pointer;">✕</button>'+
+            '</div>'+
+          '</div>'+
+          '<div style="font-family:Syne,sans-serif;font-size:13px;font-weight:600;color:#1a120a;line-height:1.45;margin-bottom:4px;">'+l.amount+'</div>'+
+          '<div style="font-family:IBM Plex Mono,monospace;font-size:9px;color:#7a7a9a;">'+l.caregiver+'</div>'+
+        '</div>';
+      }).join('');
+      notesHtml='<div style="margin-bottom:14px;">'+
+        '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;padding:0 2px;">'+
+          '<span>📝</span>'+
+          '<span style="font-family:Syne,sans-serif;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:#4a5899;">Notes</span>'+
+          '<span style="font-family:Syne,sans-serif;font-size:10px;font-weight:800;color:#fff;background:#4a5899;padding:1px 8px;border-radius:999px;">'+notes.length+'</span>'+
+        '</div>'+
+        noteCards+
+      '</div>';
+    }
+
+    // ── Standard categories ───────────────────────────────────────────────────
     var categoryOrder=['Medication','Routine','Water','Urine','BM','Labs','Report'];
     var sectionsHtml=categoryOrder.map(function(type){
       var cfg=CAT_CONFIG[type];
       var entries=sourceLogs.filter(function(l){
         var lt=(l.type||'').toLowerCase();
         var tt=type.toLowerCase();
-        // Match Medication/Meds, Routine/Tasks flexibly
         if(tt==='medication') return lt==='medication'||lt==='meds';
         if(tt==='routine') return lt==='routine'||lt==='tasks';
         return lt===tt;
@@ -1020,11 +1048,11 @@
       if(!entries.length)return'';
       var entriesHtml=entries.map(function(l){
         var subDetail='';
-        if(type==='Medication'&&l.metadata)subDetail='<span style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.55);margin-left:4px;">'+l.metadata+'</span>';
+        if(type==='Medication'&&l.metadata)subDetail='<span style="font-size:9px;font-weight:700;color:#8a7a60;margin-left:4px;">'+l.metadata+'</span>';
         var labInfo='';
-        if(type==='Labs'){var ha=l.metadata&&l.metadata.includes('ALERT');labInfo=ha?'<span style="font-size:10px;font-weight:800;color:#dc2626;margin-left:6px;">⚠️ Out-of-range</span>':'';}
+        if(type==='Labs'){var ha=l.metadata&&l.metadata.includes('ALERT');labInfo=ha?'<span style="font-size:10px;font-weight:800;color:#c0392b;margin-left:6px;">⚠️ Out-of-range</span>':'';}
         var reportActions='';
-        if(type==='Report'){try{var meta=JSON.parse(l.metadata||'{}');reportActions='<div style="display:flex;gap:6px;margin-top:6px;"><button onclick="shareReport(\''+meta.downloadUrl+'\',\''+meta.filename+'\',\'text\')" style="font-size:10px;font-weight:700;background:rgba(255,255,255,0.12);color:#fff;padding:3px 8px;border-radius:8px;border:1px solid rgba(255,255,255,0.20);">📱 Text</button><button onclick="shareReport(\''+meta.downloadUrl+'\',\''+meta.filename+'\',\'email\')" style="font-size:10px;font-weight:700;background:rgba(255,255,255,0.12);color:#fff;padding:3px 8px;border-radius:8px;border:1px solid rgba(255,255,255,0.20);">✉️ Email</button><a href="'+meta.viewUrl+'" target="_blank" style="font-size:10px;font-weight:700;background:rgba(255,255,255,0.12);color:#fff;padding:3px 8px;border-radius:8px;border:1px solid rgba(255,255,255,0.20);text-decoration:none;">👁 View</a></div>';}catch(e){}}
+        if(type==='Report'){try{var meta=JSON.parse(l.metadata||'{}');reportActions='<div style="display:flex;gap:6px;margin-top:6px;"><button onclick="shareReport(\''+meta.downloadUrl+'\',\''+meta.filename+'\',\'text\')" style="font-size:10px;font-weight:700;background:#ede7d9;color:#5a4a38;padding:3px 8px;border-radius:8px;border:0.5px solid #cdc7bb;">📱 Text</button><button onclick="shareReport(\''+meta.downloadUrl+'\',\''+meta.filename+'\',\'email\')" style="font-size:10px;font-weight:700;background:#ede7d9;color:#5a4a38;padding:3px 8px;border-radius:8px;border:0.5px solid #cdc7bb;">✉️ Email</button><a href="'+meta.viewUrl+'" target="_blank" style="font-size:10px;font-weight:700;background:#ede7d9;color:#5a4a38;padding:3px 8px;border-radius:8px;border:0.5px solid #cdc7bb;text-decoration:none;">👁 View</a></div>';}catch(e){}}
         return'<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;margin-bottom:4px;border-radius:8px;border:0.5px solid #cdc7bb;background:#ede7d9;">'+
           '<div style="flex:1;min-width:0;">'+
             '<div style="display:flex;align-items:baseline;flex-wrap:wrap;gap:2px;">'+
@@ -1036,7 +1064,7 @@
               '<div style="font-family:IBM Plex Mono,monospace;font-size:10px;font-weight:600;color:#5a4a38;">'+l.time+'</div>'+
               '<div style="font-family:Syne,sans-serif;font-size:9px;color:#8a7a60;font-weight:600;">'+l.caregiver+'</div>'+
             '</div>'+
-            '<button onclick="confirmDelete(\''+l.id+'\')" style="width:26px;height:26px;border-radius:99px;background:none;border:0.5px solid #cdc7bb;font-size:10px;font-weight:700;color:#a08060;display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;">✕</button>'+
+            '<button onclick="confirmDelete(\''+l.id+'\')" style="width:26px;height:26px;border-radius:99px;background:none;border:0.5px solid #cdc7bb;font-size:10px;font-weight:700;color:#a08060;display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;cursor:pointer;">✕</button>'+
           '</div>'+
         '</div>';
       }).join('');
@@ -1049,17 +1077,104 @@
         entriesHtml+
       '</div>';
     }).join('');
+
+    var hasAnyLogs=sourceLogs.length>0;
+
     container.innerHTML=
-      '<div style="background:linear-gradient(160deg,#0e7490 0%,#0891b2 50%,#0e6989 100%);display:flex;flex-direction:column;height:100%;">'+
-        '<div style="padding:10px 14px 5px;flex-shrink:0;">'+
+      '<div style="background:#f5f0e8;display:flex;flex-direction:column;height:100%;">'+
+        // Header row — date + Note button
+        '<div style="background:#f5f0e8;padding:8px 12px 6px;flex-shrink:0;border-bottom:0.5px solid #cdc7bb;display:flex;justify-content:space-between;align-items:center;">'+
           '<div style="font-family:Syne,sans-serif;font-size:10px;font-weight:800;color:#7A4F0B;text-transform:uppercase;letter-spacing:0.08em;">📅 '+sel+'</div>'+
+          '<button id="add-note-btn" style="background:#4a5899;color:#fff;border:none;border-radius:8px;font-family:Syne,sans-serif;font-weight:700;font-size:11px;padding:6px 12px;cursor:pointer;display:flex;align-items:center;gap:4px;">📝 Note</button>'+
         '</div>'+
-        '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:none;padding:0 12px 24px;">'+
-          (sourceLogs.length===0
+        '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:10px 12px 24px;min-height:0;">'+
+          (!hasAnyLogs
             ?'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:180px;"><div style="font-size:48px;margin-bottom:8px;">📋</div><div style="font-family:Syne,sans-serif;font-weight:700;font-style:italic;font-size:14px;color:#8a7a60;">No entries for this date</div></div>'
-            :sectionsHtml)+
+            :notesHtml+sectionsHtml)+
         '</div>'+
       '</div>';
+
+    // Wire Note button
+    document.getElementById('add-note-btn').addEventListener('click',function(){
+      showAddNoteModal(sel);
+    });
+  }
+
+  // ── Add Note Modal ─────────────────────────────────────────────────────────
+  function showAddNoteModal(dateStr){
+    var modal=document.getElementById('modal-container');
+    var now=new Date();
+    var h=now.getHours()%12||12;
+    var m=now.getMinutes();
+    var ap=now.getHours()>=12?'PM':'AM';
+    var currentTime=h+':'+(m<10?'0':'')+m+' '+ap;
+
+    modal.innerHTML=
+      '<div class="modal" onclick="document.getElementById(\'modal-container\').innerHTML=\'\'">'+
+        '<div class="modal-content" onclick="event.stopPropagation()" style="background:#f5f0e8;border-top:2px solid #4a5899;padding-bottom:40px;">'+
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'+
+            '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;color:#4a5899;text-transform:uppercase;letter-spacing:0.08em;">📝 Add Note</div>'+
+            '<span style="font-family:IBM Plex Mono,monospace;font-size:10px;color:#8a7a60;">'+dateStr+'</span>'+
+          '</div>'+
+          // Note text area
+          '<div style="font-family:Syne,sans-serif;font-size:9px;font-weight:700;color:#8a7a60;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">Note</div>'+
+          '<textarea id="note-text-input" placeholder="Describe the event..." rows="4" style="width:100%;background:#ede7d9;border:0.5px solid #cdc7bb;border-radius:8px;padding:12px;font-family:Syne,sans-serif;font-size:14px;font-weight:600;color:#1a120a;outline:none;resize:none;margin-bottom:12px;line-height:1.45;"></textarea>'+
+          // Time field
+          '<div style="font-family:Syne,sans-serif;font-size:9px;font-weight:700;color:#8a7a60;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">Time</div>'+
+          '<div style="background:#ede7d9;border:0.5px solid #cdc7bb;border-radius:8px;padding:11px 12px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">'+
+            '<span id="note-time-display" style="font-family:IBM Plex Mono,monospace;font-size:17px;font-weight:700;color:#1a120a;">'+currentTime+'</span>'+
+            '<button id="note-time-edit" style="background:none;border:none;font-family:Syne,sans-serif;font-size:11px;font-weight:700;color:#7A4F0B;cursor:pointer;">✏️ Edit</button>'+
+          '</div>'+
+          '<button id="note-save-btn" style="width:100%;padding:14px;border-radius:8px;font-family:Syne,sans-serif;font-weight:700;font-size:15px;background:#4a5899;color:#fff;border:none;margin-bottom:8px;cursor:pointer;">SAVE NOTE</button>'+
+          '<button id="note-cancel-btn" style="width:100%;padding:12px;border-radius:8px;font-family:Syne,sans-serif;font-weight:700;font-size:13px;background:#ede7d9;color:#5a4a38;border:0.5px solid #cdc7bb;cursor:pointer;">CANCEL</button>'+
+        '</div>'+
+      '</div>';
+
+    var savedTime=currentTime;
+
+    // Edit time
+    document.getElementById('note-time-edit').addEventListener('click',function(){
+      renderKeypad({
+        title:'📝 Note Time',
+        initTime:savedTime,
+        onConfirm:function(kp){
+          savedTime=kp.timeStr;
+          var el=document.getElementById('note-time-display');
+          if(el)el.textContent=savedTime;
+          // Restore note modal
+          showAddNoteModal(dateStr);
+          // Re-populate text if was filled
+        }
+      });
+    });
+
+    document.getElementById('note-cancel-btn').addEventListener('click',function(){
+      modal.innerHTML='';
+    });
+
+    document.getElementById('note-save-btn').addEventListener('click',function(){
+      var text=(document.getElementById('note-text-input').value||'').trim();
+      if(!text){showToast('Please enter a note','error');return;}
+      var cg=state.caregiver||'Unknown';
+      var entry={
+        date:dateStr,
+        type:'Note',
+        amount:text,
+        time:savedTime,
+        caregiver:cg,
+        metadata:''
+      };
+      sbInsert('logs',[entry])
+        .then(function(){
+          modal.innerHTML='';
+          showToast('Note saved ✓','success');
+          loadData();
+        })
+        .catch(function(e){
+          showToast('Save error','error');
+          console.error(e);
+        });
+    });
   }
 
   function shareReport(url,filename,method){
