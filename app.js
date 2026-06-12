@@ -938,22 +938,22 @@
     var bmDetail=ORDER.filter(function(k){return bmCounts[k];})
       .map(function(k){return'<span style="font-family:IBM Plex Mono,monospace;font-size:14px;font-weight:500;color:rgba(255,255,255,0.95);margin-right:14px;">'+k+'×'+bmCounts[k]+'</span>';}).join('');
 
-    var eStyle='background:rgba(255,255,255,0.10);border-radius:8px;padding:5px 8px;display:flex;justify-content:space-between;margin-bottom:4px;';
+    var eStyle='background:rgba(255,255,255,0.12);border-radius:8px;padding:5px 8px;display:flex;justify-content:space-between;margin-bottom:4px;';
     var eTxt='font-family:IBM Plex Mono,monospace;font-size:13px;font-weight:500;color:#fff;';
-    var eSec='font-family:IBM Plex Mono,monospace;font-size:12px;color:rgba(255,255,255,0.55);';
+    var eSec='font-family:IBM Plex Mono,monospace;font-size:12px;color:rgba(255,255,255,0.60);';
     var wPct=Math.min((wTotal/state.waterLimit)*100,100);
 
     el.innerHTML=
-      '<div style="background:linear-gradient(160deg,#0e7490 0%,#0891b2 50%,#0e6989 100%);padding:0;height:100%;display:flex;flex-direction:column;gap:0;overflow:hidden;box-sizing:border-box;">'+
+      '<div style="background:#f5f0e8;padding:6px;height:100%;display:flex;flex-direction:column;gap:5px;overflow:hidden;box-sizing:border-box;">'+
 
-      // ── WATER ─────────────────────────────────────────────────────
-      '<div style="background:rgba(0,0,0,0.18);padding:10px 10px 8px;flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;">'+
+      // ── WATER — deep ocean blue ──────────────────────────────────────
+      '<div style="background:#1d6a8a;border-radius:14px;padding:10px 10px 8px;flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;">'+
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-shrink:0;">'+
           '<div>'+
             '<div style="font-family:Syne,sans-serif;font-size:11px;font-weight:800;color:rgba(255,255,255,0.80);text-transform:uppercase;letter-spacing:0.08em;">Water</div>'+
             '<div style="font-family:IBM Plex Mono,monospace;font-size:17px;font-weight:500;color:#fff;">'+wTotal+' / '+state.waterLimit+' ml</div>'+
           '</div>'+
-          '<button id="limit-btn" style="background:rgba(255,255,255,0.25);color:#fff;border:none;border-radius:8px;font-family:Syne,sans-serif;font-size:10px;font-weight:800;padding:4px 10px;">LIMIT</button>'+
+          '<button id="limit-btn" style="background:#f5f0e8;color:#1a120a;border:none;border-radius:8px;font-family:Syne,sans-serif;font-size:10px;font-weight:800;padding:4px 10px;">LIMIT</button>'+
         '</div>'+
         (wTotal>limitTrigger?'<div style="background:#ef4444;color:#fff;padding:5px;border-radius:8px;font-family:Syne,sans-serif;font-size:11px;font-weight:800;text-align:center;margin-bottom:5px;flex-shrink:0;">⚠️ STOP! OVER LIMIT</div>':'')+
         '<div style="display:flex;gap:8px;flex:1;min-height:0;">'+
@@ -962,31 +962,31 @@
           '</div>'+
           '<div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0;">'+
             '<div style="flex:1;width:22px;background:rgba(255,255,255,0.18);border-radius:11px;overflow:hidden;position:relative;min-height:40px;">'+
-              '<div style="position:absolute;bottom:0;width:100%;background:#38e8ff;opacity:0.80;border-radius:11px;height:'+wPct+'%;transition:height 0.5s;"></div>'+
+              '<div style="position:absolute;bottom:0;width:100%;background:#38e8ff;opacity:0.85;border-radius:11px;height:'+wPct+'%;transition:height 0.5s;"></div>'+
             '</div>'+
-            '<button id="water-add" style="background:rgba(255,255,255,0.25);color:#fff;border:none;border-radius:50%;width:36px;height:36px;font-size:20px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;">＋</button>'+
+            '<button id="water-add" style="background:#f5f0e8;color:#1a120a;border:none;border-radius:50%;width:36px;height:36px;font-size:20px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;">＋</button>'+
           '</div>'+
         '</div>'+
       '</div>'+
 
-      // ── URINE — exactly 2 rows: header row (44px) + 2 entry rows (30px each) = 104px
-      '<div style="background:#0e6989;padding:8px 10px;flex:0 0 165px;overflow:hidden;display:flex;flex-direction:column;">'+
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'+
+      // ── URINE — amber/gold, + button vertically centered on right edge ──
+      '<div style="background:#b8762e;border-radius:14px;padding:8px 10px;flex:0 0 165px;overflow:hidden;display:flex;flex-direction:column;position:relative;">'+
+        '<div style="margin-bottom:4px;">'+
           '<div style="display:flex;align-items:baseline;gap:8px;">'+
-            '<div style="font-family:Syne,sans-serif;font-size:11px;font-weight:800;color:rgba(255,255,255,0.80);text-transform:uppercase;letter-spacing:0.08em;">Urine</div>'+
+            '<div style="font-family:Syne,sans-serif;font-size:11px;font-weight:800;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.08em;">Urine</div>'+
             '<div style="font-family:IBM Plex Mono,monospace;font-size:15px;font-weight:500;color:#fff;">'+uTotal+' ml</div>'+
           '</div>'+
-          '<button id="urine-add" style="background:rgba(255,255,255,0.25);color:#fff;border:none;border-radius:50%;width:30px;height:30px;font-size:16px;font-weight:900;display:flex;align-items:center;justify-content:center;">＋</button>'+
         '</div>'+
-        '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;">'+urineLogs.slice(0,4).map(function(l){return'<div style="'+eStyle+'"><span style="'+eTxt+'">'+l.amount+'</span><span style="'+eSec+'">'+l.time+' · '+l.caregiver+'</span></div>';}).join('')+'</div>'+
-        (urineLogs.length>2?'<div style="font-family:Syne,sans-serif;font-size:9px;color:rgba(255,255,255,0.7);text-align:center;">+'+(urineLogs.length-2)+' more</div>':'')+
+        '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-right:46px;">'+urineLogs.slice(0,4).map(function(l){return'<div style="'+eStyle+'"><span style="'+eTxt+'">'+l.amount+'</span><span style="'+eSec+'">'+l.time+' · '+l.caregiver+'</span></div>';}).join('')+'</div>'+
+        (urineLogs.length>2?'<div style="font-family:Syne,sans-serif;font-size:9px;color:rgba(255,255,255,0.7);text-align:center;padding-right:46px;">+'+(urineLogs.length-2)+' more</div>':'')+
+        '<button id="urine-add" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:#f5f0e8;color:#1a120a;border:none;border-radius:12px;width:38px;height:38px;font-size:18px;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.20);">＋</button>'+
       '</div>'+
 
-      // ── BM — exactly 1 row: label + count on same line
-      '<div style="background:#0a4a5c;padding:8px 10px 14px;flex:0 0 78px;overflow:hidden;">'+
+      // ── BM — deep plum/maroon ─────────────────────────────────────────
+      '<div style="background:#6b3a52;border-radius:14px;padding:8px 10px 14px;flex:0 0 78px;overflow:hidden;">'+
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'+
           '<div style="font-family:Syne,sans-serif;font-size:11px;font-weight:800;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.08em;">BM Events</div>'+
-          '<button id="bm-add" style="background:rgba(255,255,255,0.25);color:#fff;border:none;border-radius:50%;width:30px;height:30px;font-size:16px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;">＋</button>'+
+          '<button id="bm-add" style="background:#f5f0e8;color:#1a120a;border:none;border-radius:50%;width:30px;height:30px;font-size:16px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;">＋</button>'+
         '</div>'+
         '<div style="display:flex;align-items:center;">'+
           '<span style="font-family:IBM Plex Mono,monospace;font-size:17px;font-weight:500;color:#fff;margin-right:20px;">'+bmLogs.length+'</span>'+
