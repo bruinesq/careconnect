@@ -1053,7 +1053,12 @@
         var labInfo='';
         if(type==='Labs'){var ha=l.metadata&&l.metadata.includes('ALERT');labInfo=ha?'<span style="font-size:10px;font-weight:800;color:#c0392b;margin-left:6px;">⚠️ Out-of-range</span>':'';}
         var reportActions='';
-        if(type==='Report'){try{var meta=JSON.parse(l.metadata||'{}');reportActions='<div style="display:flex;gap:6px;margin-top:6px;"><button onclick="shareReport(\''+meta.downloadUrl+'\',\''+meta.filename+'\',\'text\')" style="font-size:10px;font-weight:700;background:#ede7d9;color:#5a4a38;padding:3px 8px;border-radius:8px;border:0.5px solid #cdc7bb;">📱 Text</button><button onclick="shareReport(\''+meta.downloadUrl+'\',\''+meta.filename+'\',\'email\')" style="font-size:10px;font-weight:700;background:#ede7d9;color:#5a4a38;padding:3px 8px;border-radius:8px;border:0.5px solid #cdc7bb;">✉️ Email</button><a href="'+meta.viewUrl+'" target="_blank" style="font-size:10px;font-weight:700;background:#ede7d9;color:#5a4a38;padding:3px 8px;border-radius:8px;border:0.5px solid #cdc7bb;text-decoration:none;">👁 View</a></div>';}catch(e){}}
+        if(type==='Report'){
+          try{
+            var meta=JSON.parse(l.metadata||'{}');
+            reportActions='<div style="margin-top:4px;font-family:Syne,sans-serif;font-size:10px;color:#7A4F0B;font-weight:700;">📥 Downloaded to device</div>';
+          }catch(e){}
+        }
         return'<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;margin-bottom:4px;border-radius:8px;border:0.5px solid #cdc7bb;background:#ede7d9;">'+
           '<div style="flex:1;min-width:0;">'+
             '<div style="display:flex;align-items:baseline;flex-wrap:wrap;gap:2px;">'+
@@ -1880,15 +1885,23 @@
     var h2=now.getHours()%12||12,m2=now.getMinutes(),ap2=now.getHours()>=12?'PM':'AM';
     var timeStr=h2+':'+(m2<10?'0':'')+m2+' '+ap2;
     var today=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+
+    // Make sure date navigator is set to today so the report appears
+    var dn=document.getElementById('date-navigator');
+    if(dn) dn.value=today;
+
     sbInsert('logs',[{
       date:today, type:'Report', amount:filename,
       time:timeStr, caregiver:'System',
       metadata:JSON.stringify({filename:filename, downloadUrl:'', viewUrl:''})
     }]).then(function(){
+      showToast('Report downloaded — check Logs ✓','success');
+      // Navigate to Logs page so report entry is visible
+      state.view='logs';
       loadData();
+    }).catch(function(e){
+      console.error('Report log error',e);
       showToast('Report downloaded ✓','success');
-    }).catch(function(){
-      showToast('Report downloaded ✓','success'); // download still succeeded
     });
   }
 
