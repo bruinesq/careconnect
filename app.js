@@ -1576,7 +1576,7 @@
             return l.type==='Urine'&&
               new Date(l.date+'T00:00:00')>=urineStart;
           }).sort(function(a,b){return a.date.localeCompare(b.date);});
-          buildPdf(now,labLogs,cortLogs,urineLogs);
+          buildPdf(now,labStart,labLogs,cortLogs,urineLogs);
         })
         .catch(function(e){
           showToast('Fetch error: '+e.message,'error');
@@ -1589,26 +1589,23 @@
     },100);
   }
 
-  function buildPdf(now,labLogs,cortLogs,urineLogs){
+  function buildPdf(now,labStart,labLogs,cortLogs,urineLogs){
     showToast('Data loaded — building PDF…','info');
-    // Load jsPDF dynamically if not already loaded
     if(window.jspdf&&window.jspdf.jsPDF){
-      generatePdfDoc(now,labLogs,cortLogs,urineLogs);
+      generatePdfDoc(now,labStart,labLogs,cortLogs,urineLogs);
     } else {
       var script=document.createElement('script');
       script.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
       script.onload=function(){
         showToast('PDF library loaded…','info');
-        generatePdfDoc(now,labLogs,cortLogs,urineLogs);
+        generatePdfDoc(now,labStart,labLogs,cortLogs,urineLogs);
       };
-      script.onerror=function(){
-        showToast('Could not load PDF library — check network','error');
-      };
+      script.onerror=function(){showToast('Could not load PDF library — check network','error');};
       document.head.appendChild(script);
     }
   }
 
-  function generatePdfDoc(now,labLogs,cortLogs,urineLogs){
+  function generatePdfDoc(now,labStart,labLogs,cortLogs,urineLogs){
     try{
     var jsPDF=window.jspdf.jsPDF;
     var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'letter'});
