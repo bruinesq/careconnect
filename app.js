@@ -1546,12 +1546,15 @@
 
     setTimeout(function(){
       try{
-        var url=SUPABASE_URL+'/rest/v1/logs?date=gte.'+fromDate+'&order=date.desc,created_at.desc&select=*';
+        var SB_URL='https://vpohfpyouwshqgkntxzm.supabase.co';
+        var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwb2hmcHlvdXdzaHFna250eHptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NTM1MjEsImV4cCI6MjA5NTEyOTUyMX0.FqnoeWgjYbFCMTt1gOMuGToH7LdX5wVtCdTXn7HrWrQ';
+        var url=SB_URL+'/rest/v1/logs?date=gte.'+fromDate+'&order=date.desc,created_at.desc&select=*';
+        showToast('Fetching from Supabase…','info');
         fetch(url,{
           method:'GET',
           headers:{
-            'apikey':SUPABASE_KEY,
-            'Authorization':'Bearer '+SUPABASE_KEY,
+            'apikey':SB_KEY,
+            'Authorization':'Bearer '+SB_KEY,
             'Content-Type':'application/json'
           }
         })
