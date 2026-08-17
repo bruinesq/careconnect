@@ -1583,19 +1583,26 @@
   }
 
   function buildPdf(now,labLogs,cortLogs,urineLogs,allLogs){
+    showToast('Data loaded — building PDF…','info');
     // Load jsPDF dynamically if not already loaded
-    if(window.jspdf){
+    if(window.jspdf&&window.jspdf.jsPDF){
       generatePdfDoc(now,labLogs,cortLogs,urineLogs);
     } else {
       var script=document.createElement('script');
       script.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-      script.onload=function(){generatePdfDoc(now,labLogs,cortLogs,urineLogs);};
-      script.onerror=function(){showToast('Could not load PDF library','error');};
+      script.onload=function(){
+        showToast('PDF library loaded…','info');
+        generatePdfDoc(now,labLogs,cortLogs,urineLogs);
+      };
+      script.onerror=function(){
+        showToast('Could not load PDF library — check network','error');
+      };
       document.head.appendChild(script);
     }
   }
 
   function generatePdfDoc(now,labLogs,cortLogs,urineLogs){
+    try{
     var jsPDF=window.jspdf.jsPDF;
     var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'letter'});
 
@@ -1894,7 +1901,13 @@
     // ── Save PDF & log to Supabase ────────────────────────────────────────────
     var dateStr=now.getFullYear()+'_'+String(now.getMonth()+1).padStart(2,'0')+'_'+String(now.getDate()).padStart(2,'0');
     var filename='CareConnect_'+dateStr+'.pdf';
-    doc.save(filename);
+
+    // iOS Safari doesn't support doc.save() — use blob URL opened in new tab
+    var pdfOutput=doc.output('blob');
+    var blobUrl=URL.createObjectURL(pdfOutput);
+    window.open(blobUrl,'_blank');
+    // Revoke after delay
+    setTimeout(function(){URL.revokeObjectURL(blobUrl);},60000);
 
     // Log report entry to Supabase
     var h2=now.getHours()%12||12,m2=now.getMinutes(),ap2=now.getHours()>=12?'PM':'AM';
@@ -1911,13 +1924,16 @@
       metadata:JSON.stringify({filename:filename, downloadUrl:'', viewUrl:''})
     }]).then(function(){
       showToast('Report downloaded — check Logs ✓','success');
-      // Navigate to Logs page so report entry is visible
       state.view='logs';
       loadData();
     }).catch(function(e){
       console.error('Report log error',e);
       showToast('Report downloaded ✓','success');
     });
+    }catch(err){
+      showToast('PDF build error: '+err.message,'error');
+      console.error('generatePdfDoc error:',err);
+    }
   }
 
   function changeLimit(){
