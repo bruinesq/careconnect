@@ -1,4 +1,4 @@
-// CareConnect app.js — v202605260152
+// CareConnect app.js — v20260817-PDF-FIXED
 
   // ─── CONSTANTS ───────────────────────────────────────────────────────────
   const LAB_REF = {
