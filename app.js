@@ -1537,34 +1537,49 @@
   function triggerPdfExport(){
     showToast('Generating report…','info');
 
-    // ── Pull data from Supabase ───────────────────────────────────────────────
     var now=new Date();
     var labStart=new Date(now.getTime()-(30*24*60*60*1000));
     var cortStart=new Date(now.getTime()-(30*24*60*60*1000));
     var urineStart=new Date(now.getTime()-(7*24*60*60*1000));
     var fromDate=cortStart.getFullYear()+'-'+String(cortStart.getMonth()+1).padStart(2,'0')+'-'+String(cortStart.getDate()).padStart(2,'0');
 
-    sbGet('logs','date=gte.'+fromDate+'&order=date.desc,created_at.desc&limit=2000')
-      .then(function(allLogs){
-        // Filter by type
-        var labLogs=allLogs.filter(function(l){
-          return l.type==='Labs'&&new Date(l.date)>=labStart;
-        }).sort(function(a,b){return b.date.localeCompare(a.date)||b.time.localeCompare(a.time);});
+    // Use direct fetch with Range header to get up to 2000 rows
+    var url=SUPABASE_URL+'/rest/v1/logs?date=gte.'+fromDate+'&order=date.desc,created_at.desc';
+    fetch(url,{
+      headers:{
+        'apikey':SUPABASE_KEY,
+        'Authorization':'Bearer '+SUPABASE_KEY,
+        'Range':'0-1999',
+        'Range-Unit':'items'
+      }
+    })
+    .then(function(res){
+      if(!res.ok) throw new Error('Fetch failed: '+res.status);
+      return res.json();
+    })
+    .then(function(allLogs){
+      if(!allLogs||!Array.isArray(allLogs)){
+        throw new Error('Invalid data returned');
+      }
 
-        var cortLogs=allLogs.filter(function(l){
-          return l.type==='Medication'&&(l.amount||'').toLowerCase().includes('cortef')&&new Date(l.date)>=cortStart;
-        }).sort(function(a,b){return b.date.localeCompare(a.date);}).slice(0,5);
+      var labLogs=allLogs.filter(function(l){
+        return l.type==='Labs'&&new Date(l.date)>=labStart;
+      }).sort(function(a,b){return b.date.localeCompare(a.date)||b.time.localeCompare(a.time);});
 
-        var urineLogs=allLogs.filter(function(l){
-          return l.type==='Urine'&&new Date(l.date)>=urineStart;
-        }).sort(function(a,b){return a.date.localeCompare(b.date);});
+      var cortLogs=allLogs.filter(function(l){
+        return l.type==='Medication'&&(l.amount||'').toLowerCase().includes('cortef')&&new Date(l.date)>=cortStart;
+      }).sort(function(a,b){return b.date.localeCompare(a.date);}).slice(0,5);
 
-        buildPdf(now,labLogs,cortLogs,urineLogs,allLogs);
-      })
-      .catch(function(e){
-        showToast('Report failed — could not load data','error');
-        console.error(e);
-      });
+      var urineLogs=allLogs.filter(function(l){
+        return l.type==='Urine'&&new Date(l.date)>=urineStart;
+      }).sort(function(a,b){return a.date.localeCompare(b.date);});
+
+      buildPdf(now,labLogs,cortLogs,urineLogs,allLogs);
+    })
+    .catch(function(e){
+      showToast('Report failed — could not load data','error');
+      console.error('PDF fetch error:',e);
+    });
   }
 
   function buildPdf(now,labLogs,cortLogs,urineLogs,allLogs){
