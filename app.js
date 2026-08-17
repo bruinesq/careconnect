@@ -1536,16 +1536,16 @@
   // ─── UTILITIES ───────────────────────────────────────────────────────────
   function triggerPdfExport(){
     showToast('Generating report…','info');
+    var now=new Date();
+    var labStart=new Date(now.getTime()-(30*24*60*60*1000));
+    var cortStart=new Date(now.getTime()-(30*24*60*60*1000));
+    var urineStart=new Date(now.getTime()-(7*24*60*60*1000));
+    var fromDate=cortStart.getFullYear()+'-'+
+      String(cortStart.getMonth()+1).padStart(2,'0')+'-'+
+      String(cortStart.getDate()).padStart(2,'0');
+
     setTimeout(function(){
       try{
-        var now=new Date();
-        var cortStart=new Date(now.getTime()-(30*24*60*60*1000));
-        var labStart=new Date(now.getTime()-(30*24*60*60*1000));
-        var urineStart=new Date(now.getTime()-(7*24*60*60*1000));
-        var fromDate=cortStart.getFullYear()+'-'+
-          String(cortStart.getMonth()+1).padStart(2,'0')+'-'+
-          String(cortStart.getDate()).padStart(2,'0');
-
         var url=SUPABASE_URL+'/rest/v1/logs?date=gte.'+fromDate+'&order=date.desc,created_at.desc&select=*';
         fetch(url,{
           method:'GET',
@@ -1561,9 +1561,18 @@
         })
         .then(function(allLogs){
           showToast('Got '+allLogs.length+' rows — building PDF…','info');
-          var labLogs=allLogs.filter(function(l){return l.type==='Labs'&&new Date(l.date+'T00:00:00')>=labStart;}).sort(function(a,b){return b.date.localeCompare(a.date);});
-          var cortLogs=allLogs.filter(function(l){return l.type==='Medication'&&(l.amount||'').toLowerCase().indexOf('cortef')>=0&&new Date(l.date+'T00:00:00')>=cortStart;}).sort(function(a,b){return b.date.localeCompare(a.date);}).slice(0,5);
-          var urineLogs=allLogs.filter(function(l){return l.type==='Urine'&&new Date(l.date+'T00:00:00')>=urineStart;}).sort(function(a,b){return a.date.localeCompare(b.date);});
+          var labLogs=allLogs.filter(function(l){
+            return l.type==='Labs'&&new Date(l.date+'T00:00:00')>=labStart;
+          }).sort(function(a,b){return b.date.localeCompare(a.date);});
+          var cortLogs=allLogs.filter(function(l){
+            return l.type==='Medication'&&
+              (l.amount||'').toLowerCase().indexOf('cortef')>=0&&
+              new Date(l.date+'T00:00:00')>=cortStart;
+          }).sort(function(a,b){return b.date.localeCompare(a.date);}).slice(0,5);
+          var urineLogs=allLogs.filter(function(l){
+            return l.type==='Urine'&&
+              new Date(l.date+'T00:00:00')>=urineStart;
+          }).sort(function(a,b){return a.date.localeCompare(b.date);});
           buildPdf(now,labLogs,cortLogs,urineLogs);
         })
         .catch(function(e){
