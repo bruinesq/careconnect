@@ -1530,14 +1530,366 @@
 
   // ─── UTILITIES ───────────────────────────────────────────────────────────
   function triggerPdfExport(){
-    showToast('Generating report — this takes ~15 seconds…','info');
-    // Open GAS in new tab to bypass CORS — GAS generates PDF and logs to Supabase
-    window.open(GAS_PDF_URL + '?action=generateReport', '_blank');
-    // Refresh logs after delay to show the new report entry
-    setTimeout(function(){
+    showToast('Generating report…','info');
+
+    // ── Pull data from Supabase ───────────────────────────────────────────────
+    var now=new Date();
+    var labStart=new Date(now.getTime()-(30*24*60*60*1000));
+    var cortStart=new Date(now.getTime()-(30*24*60*60*1000));
+    var urineStart=new Date(now.getTime()-(7*24*60*60*1000));
+    var fromDate=cortStart.getFullYear()+'-'+String(cortStart.getMonth()+1).padStart(2,'0')+'-'+String(cortStart.getDate()).padStart(2,'0');
+
+    sbGet('logs','date=gte.'+fromDate+'&order=date.desc,created_at.desc&limit=2000')
+      .then(function(allLogs){
+        // Filter by type
+        var labLogs=allLogs.filter(function(l){
+          return l.type==='Labs'&&new Date(l.date)>=labStart;
+        }).sort(function(a,b){return b.date.localeCompare(a.date)||b.time.localeCompare(a.time);});
+
+        var cortLogs=allLogs.filter(function(l){
+          return l.type==='Medication'&&(l.amount||'').toLowerCase().includes('cortef')&&new Date(l.date)>=cortStart;
+        }).sort(function(a,b){return b.date.localeCompare(a.date);}).slice(0,5);
+
+        var urineLogs=allLogs.filter(function(l){
+          return l.type==='Urine'&&new Date(l.date)>=urineStart;
+        }).sort(function(a,b){return a.date.localeCompare(b.date);});
+
+        buildPdf(now,labLogs,cortLogs,urineLogs,allLogs);
+      })
+      .catch(function(e){
+        showToast('Report failed — could not load data','error');
+        console.error(e);
+      });
+  }
+
+  function buildPdf(now,labLogs,cortLogs,urineLogs,allLogs){
+    // Load jsPDF dynamically if not already loaded
+    if(window.jspdf){
+      generatePdfDoc(now,labLogs,cortLogs,urineLogs);
+    } else {
+      var script=document.createElement('script');
+      script.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+      script.onload=function(){generatePdfDoc(now,labLogs,cortLogs,urineLogs);};
+      script.onerror=function(){showToast('Could not load PDF library','error');};
+      document.head.appendChild(script);
+    }
+  }
+
+  function generatePdfDoc(now,labLogs,cortLogs,urineLogs){
+    var jsPDF=window.jspdf.jsPDF;
+    var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'letter'});
+
+    var W=215.9; // letter width mm
+    var margin=14;
+    var contentW=W-margin*2;
+    var y=margin;
+
+    // ── Colors & helpers ──────────────────────────────────────────────────────
+    function hex(h){
+      var r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);
+      return[r,g,b];
+    }
+    function setFill(h){doc.setFillColor.apply(doc,hex(h));}
+    function setTxt(h){doc.setTextColor.apply(doc,hex(h));}
+    function setDraw(h){doc.setDrawColor.apply(doc,hex(h));}
+
+    var DARK='#1a120a', GRAY='#8a7a60', BLUE='#1e40af', BLUE_LT='#dbeafe';
+    var RED='#c0392b', RED_LT='#fde8e8', AMBER='#7A4F0B', CREAM='#f5f0e8';
+    var GREEN='#166534', CORTEF='#92400e', CORTEF_LT='#fef3c7';
+
+    var LAB_MARKERS=[
+      {name:'Sodium',min:135,max:145,unit:'mmol/L'},
+      {name:'Potassium',min:3.5,max:5.2,unit:'mEq/L'},
+      {name:'Chloride',min:96,max:106,unit:'mmol/L'},
+      {name:'Ionized Calcium',min:1.15,max:1.35,unit:'mmol/L'},
+      {name:'TCO2',min:23,max:30,unit:'mmol/L'},
+      {name:'Glucose',min:70,max:99,unit:'mg/dL'},
+      {name:'BUN',min:7,max:20,unit:'mg/dL'},
+      {name:'Creatinine',min:0.7,max:1.3,unit:'mg/dL'},
+      {name:'Hematocrit',min:41,max:50,unit:'%'},
+      {name:'Hemoglobin',min:13.5,max:17.5,unit:'g/dL'},
+      {name:'Anion Gap',min:3,max:11,unit:'mEq/L'}
+    ];
+
+    var MED_SCHEDULE={
+      '6:00 AM':[['Keppra','15ml'],['Levothyroxine','0.88mcg'],['Hydrocortisone','15mg'],['Desmopressin','0.15mg']],
+      '12:00 PM':[['Miralax','as needed'],['Juice','as needed']],
+      '5:00 PM':[['Desmopressin','0.15mg'],['GH','0.4ml']],
+      '6:00 PM':[['Protein','1oz'],['Hydrocortisone','15mg'],['Keppra','15ml']]
+    };
+
+    function nl(h){y+=h;}
+    function checkPage(needed){
+      if(y+needed>270){doc.addPage();y=margin;}
+    }
+
+    function sectionHeader(title,color,bgColor){
+      checkPage(10);
+      setFill(bgColor||BLUE_LT);
+      doc.rect(margin,y,contentW,8,'F');
+      setTxt(color||BLUE);
+      doc.setFontSize(12);doc.setFont('helvetica','bold');
+      doc.text(title,margin+2,y+5.5);
+      nl(10);
+    }
+
+    function hline(color){
+      setDraw(color||'#cdc7bb');
+      doc.setLineWidth(0.2);
+      doc.line(margin,y,margin+contentW,y);
+      nl(1);
+    }
+
+    // ── Title ─────────────────────────────────────────────────────────────────
+    setTxt(DARK);
+    doc.setFontSize(18);doc.setFont('helvetica','bold');
+    doc.text("Ryan's CareConnect — Clinical Report",margin,y);
+    nl(7);
+
+    var labStartStr=labStart.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    var nowStr=now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    setTxt(GRAY);
+    doc.setFontSize(10);doc.setFont('helvetica','normal');
+    doc.text(labStartStr+' – '+nowStr,margin,y);
+    nl(8);
+
+    // Patient info row
+    var pairs=[['Patient','Ryan Nguyen'],['Date of Birth','10/28/2003'],['Sex / Age','Male, '+Math.floor((now-new Date('2003-10-28'))/(365.25*24*60*60*1000))+' yrs']];
+    var colW=contentW/3;
+    pairs.forEach(function(p,i){
+      var x=margin+i*colW;
+      setTxt(GRAY);doc.setFontSize(8);doc.setFont('helvetica','normal');
+      doc.text(p[0],x,y);
+      setTxt(DARK);doc.setFontSize(11);doc.setFont('helvetica','bold');
+      doc.text(p[1],x,y+5);
+    });
+    nl(14);
+
+    // Medical Alert banner
+    setFill('#fecaca');
+    doc.rect(margin,y,contentW,16,'F');
+    setTxt('#7f1d1d');
+    doc.setFontSize(11);doc.setFont('helvetica','bold');
+    doc.text('MEDICAL ALERT — Diabetes Insipidus',margin+2,y+5);
+    doc.setFontSize(9);doc.setFont('helvetica','normal');
+    doc.text('Daily fluid intake strictly enforced at 1,200 ml/day. Do not increase without physician authorization.',margin+2,y+11);
+    nl(20);
+
+    // ── Medication Schedule ────────────────────────────────────────────────────
+    sectionHeader('MEDICATION SCHEDULE');
+    var times=Object.keys(MED_SCHEDULE);
+    var tcW=contentW/4;
+
+    // Time headers
+    setFill('#eff6ff');
+    doc.rect(margin,y,contentW,7,'F');
+    times.forEach(function(t,i){
+      setTxt(BLUE);doc.setFontSize(10);doc.setFont('helvetica','bold');
+      doc.text(t,margin+i*tcW+2,y+5);
+    });
+    nl(8);
+
+    var maxMeds=Math.max.apply(null,times.map(function(t){return MED_SCHEDULE[t].length;}));
+    for(var mi=0;mi<maxMeds;mi++){
+      checkPage(8);
+      setFill(mi%2===0?'#ffffff':'#f8fafc');
+      doc.rect(margin,y,contentW,7,'F');
+      times.forEach(function(t,ti){
+        var meds=MED_SCHEDULE[t];
+        if(mi<meds.length){
+          var x=margin+ti*tcW+2;
+          setTxt(DARK);doc.setFontSize(10);doc.setFont('helvetica','bold');
+          doc.text(meds[mi][0],x,y+3.5);
+          setTxt(GRAY);doc.setFontSize(8);doc.setFont('helvetica','normal');
+          doc.text(meds[mi][1],x,y+6.5);
+        }
+      });
+      nl(8);
+    }
+    nl(4);
+
+    // ── Cortef Stress Doses ────────────────────────────────────────────────────
+    checkPage(20);
+    sectionHeader('CORTEF STRESS DOSE — Last 5 Administrations (last 30 days)',CORTEF,CORTEF_LT);
+    var cortHdrs=['Date','Time','Dose Given','Caregiver','Notes'];
+    var cortW=[40,30,40,40,contentW-150];
+    setFill('#fde68a');
+    doc.rect(margin,y,contentW,7,'F');
+    var cx=margin;
+    cortHdrs.forEach(function(h,i){
+      setTxt(CORTEF);doc.setFontSize(9);doc.setFont('helvetica','bold');
+      doc.text(h,cx+2,y+5);cx+=cortW[i];
+    });
+    nl(8);
+
+    if(cortLogs.length===0){
+      setTxt(GRAY);doc.setFontSize(9);doc.setFont('helvetica','italic');
+      doc.text('No Cortef stress doses recorded in the last 90 days.',margin+2,y+5);
+      nl(8);
+    } else {
+      cortLogs.forEach(function(l,li){
+        checkPage(8);
+        setFill(li%2===0?'#fffbeb':'#fef9c3');
+        doc.rect(margin,y,contentW,7,'F');
+        var dFmt=new Date(l.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+        var doseM=(l.amount||'').match(/\(([^)]+)\)/);
+        var dose=doseM?doseM[1]:l.amount;
+        [dFmt,l.time,dose,l.caregiver,''].forEach(function(v,i){
+          var cx2=margin+cortW.slice(0,i).reduce(function(a,b){return a+b;},0);
+          setTxt(CORTEF);doc.setFontSize(9);doc.setFont('helvetica','normal');
+          doc.text(v||'',cx2+2,y+5);
+        });
+        nl(8);
+      });
+    }
+    nl(4);
+
+    // ── Lab Results ────────────────────────────────────────────────────────────
+    checkPage(20);
+    sectionHeader('LAB RESULTS — LAST 30 DAYS');
+    var panels=labLogs.map(function(l){
+      var results={};
+      try{results=JSON.parse((l.metadata||'{}').replace(' ALERT',''));}catch(e){}
+      return{date:l.date,time:l.time,results:results};
+    });
+    var displayPanels=panels.slice(0,4);
+    var numCols=displayPanels.length;
+    var markerW=70;
+    var dataW=numCols>0?(contentW-markerW)/numCols:contentW-markerW;
+
+    // Lab column headers
+    setFill('#eff6ff');
+    doc.rect(margin,y,contentW,7,'F');
+    setTxt(BLUE);doc.setFontSize(9);doc.setFont('helvetica','bold');
+    doc.text('Marker / Normal Range',margin+2,y+5);
+    displayPanels.forEach(function(p,i){
+      var d=new Date(p.date).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      doc.text(d,margin+markerW+i*dataW+dataW-2,y+5,{align:'right'});
+    });
+    nl(8);
+
+    if(numCols===0){
+      setTxt(GRAY);doc.setFontSize(9);doc.setFont('helvetica','italic');
+      doc.text('No lab results recorded in the last 30 days.',margin+2,y+5);
+      nl(8);
+    } else {
+      var outFlags=[];
+      LAB_MARKERS.forEach(function(marker,mi){
+        checkPage(9);
+        setFill(mi%2===0?'#ffffff':'#f8fafc');
+        doc.rect(margin,y,contentW,8,'F');
+
+        // Marker name + range
+        setTxt(DARK);doc.setFontSize(9);doc.setFont('helvetica','bold');
+        doc.text(marker.name,margin+2,y+3.5);
+        setTxt(GRAY);doc.setFontSize(7.5);doc.setFont('helvetica','normal');
+        doc.text(marker.min+' – '+marker.max+' '+marker.unit,margin+2,y+7);
+
+        // Values
+        displayPanels.forEach(function(p,i){
+          var raw=p.results[marker.name];
+          var v=parseFloat(raw);
+          var x=margin+markerW+i*dataW+dataW-2;
+          if(raw===undefined||raw===''){
+            setTxt(GRAY);doc.setFontSize(10);doc.setFont('helvetica','normal');
+            doc.text('—',x,y+5.5,{align:'right'});
+          } else {
+            var isOut=v<marker.min||v>marker.max;
+            if(isOut){
+              setFill(RED_LT);
+              doc.rect(margin+markerW+i*dataW,y,dataW,8,'F');
+              outFlags.push(marker.name+' '+v+(v<marker.min?' LOW':' HIGH'));
+            }
+            setTxt(isOut?RED:DARK);
+            doc.setFontSize(10);doc.setFont('helvetica',isOut?'bold':'normal');
+            doc.text(String(v)+(isOut?' ⚠':''),x,y+5.5,{align:'right'});
+          }
+        });
+        nl(9);
+      });
+
+      // Out-of-range summary
+      if(outFlags.length>0){
+        checkPage(14);
+        nl(2);
+        setFill(RED_LT);
+        doc.rect(margin,y,contentW,10,'F');
+        setTxt(RED);doc.setFontSize(9);doc.setFont('helvetica','bold');
+        doc.text('Out-of-range: '+outFlags.join(' · '),margin+2,y+4);
+        doc.setFont('helvetica','normal');
+        doc.text('Please review with physician.',margin+2,y+8.5);
+        nl(13);
+      }
+    }
+    nl(4);
+
+    // ── Urine Output — Last 7 Days ─────────────────────────────────────────────
+    checkPage(20);
+    sectionHeader('URINE OUTPUT — LAST 7 DAYS');
+    if(urineLogs.length===0){
+      setTxt(GRAY);doc.setFontSize(9);doc.setFont('helvetica','italic');
+      doc.text('No urine output recorded in the last 7 days.',margin+2,y+5);
+      nl(8);
+    } else {
+      var byDate={};
+      urineLogs.forEach(function(l){
+        if(!byDate[l.date])byDate[l.date]=[];
+        byDate[l.date].push(parseInt(l.amount)||0);
+      });
+      var grandTotal=0;
+      var dates=Object.keys(byDate).sort();
+      dates.forEach(function(date,di){
+        checkPage(8);
+        var entries=byDate[date];
+        var dayTotal=entries.reduce(function(a,b){return a+b;},0);
+        grandTotal+=dayTotal;
+        var count=entries.length;
+        var label=new Date(date).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+        setFill(di%2===0?'#ffffff':'#f8fafc');
+        doc.rect(margin,y,contentW,7,'F');
+        setTxt(DARK);doc.setFontSize(10);doc.setFont('helvetica','normal');
+        doc.text(label,margin+2,y+5);
+        doc.text(dayTotal+' ml  ('+count+' void'+(count>1?'s':'')+')',margin+contentW-2,y+5,{align:'right'});
+        nl(8);
+      });
+      // Total row
+      checkPage(10);
+      nl(2);
+      var avg=Math.round(grandTotal/dates.length);
+      setFill('#e0f7fa');
+      doc.rect(margin,y,contentW,8,'F');
+      setTxt('#0e7490');doc.setFontSize(10);doc.setFont('helvetica','bold');
+      doc.text('7-Day Total: '+grandTotal+' ml     |     Daily Avg: '+avg+' ml/day     |     Limit: 1,200 ml/day',margin+2,y+5.5);
+      nl(12);
+    }
+
+    // ── Footer ────────────────────────────────────────────────────────────────
+    checkPage(12);
+    nl(4);
+    hline();
+    setTxt(GRAY);doc.setFontSize(8);doc.setFont('helvetica','normal');
+    doc.text("Generated by Ryan's CareConnect · "+nowStr,margin,y+4);
+    nl(6);
+
+    // ── Save PDF & log to Supabase ────────────────────────────────────────────
+    var dateStr=now.getFullYear()+'_'+String(now.getMonth()+1).padStart(2,'0')+'_'+String(now.getDate()).padStart(2,'0');
+    var filename='CareConnect_'+dateStr+'.pdf';
+    doc.save(filename);
+
+    // Log report entry to Supabase
+    var h2=now.getHours()%12||12,m2=now.getMinutes(),ap2=now.getHours()>=12?'PM':'AM';
+    var timeStr=h2+':'+(m2<10?'0':'')+m2+' '+ap2;
+    var today=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+    sbInsert('logs',[{
+      date:today, type:'Report', amount:filename,
+      time:timeStr, caregiver:'System',
+      metadata:JSON.stringify({filename:filename, downloadUrl:'', viewUrl:''})
+    }]).then(function(){
       loadData();
-      showToast('Check Logs for the new report ✓','success');
-    }, 18000);
+      showToast('Report downloaded ✓','success');
+    }).catch(function(){
+      showToast('Report downloaded ✓','success'); // download still succeeded
+    });
   }
 
   function changeLimit(){
