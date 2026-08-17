@@ -1536,41 +1536,45 @@
   // ─── UTILITIES ───────────────────────────────────────────────────────────
   function triggerPdfExport(){
     showToast('Generating report…','info');
+    setTimeout(function(){
+      try{
+        var now=new Date();
+        var cortStart=new Date(now.getTime()-(30*24*60*60*1000));
+        var labStart=new Date(now.getTime()-(30*24*60*60*1000));
+        var urineStart=new Date(now.getTime()-(7*24*60*60*1000));
+        var fromDate=cortStart.getFullYear()+'-'+
+          String(cortStart.getMonth()+1).padStart(2,'0')+'-'+
+          String(cortStart.getDate()).padStart(2,'0');
 
-    var now=new Date();
-    var labStart=new Date(now.getTime()-(30*24*60*60*1000));
-    var cortStart=new Date(now.getTime()-(30*24*60*60*1000));
-    var urineStart=new Date(now.getTime()-(7*24*60*60*1000));
-    var fromDate=cortStart.getFullYear()+'-'+
-      String(cortStart.getMonth()+1).padStart(2,'0')+'-'+
-      String(cortStart.getDate()).padStart(2,'0');
-
-    // Simple fetch — same pattern as the rest of the app
-    sbGet('logs','date=gte.'+fromDate+'&order=date.desc,created_at.desc')
-      .then(function(allLogs){
-        showToast('Data loaded ('+allLogs.length+' entries)…','info');
-        if(!Array.isArray(allLogs)) throw new Error('Bad data');
-
-        var labLogs=allLogs.filter(function(l){
-          return l.type==='Labs'&&new Date(l.date+'T00:00:00')>=labStart;
-        }).sort(function(a,b){return b.date.localeCompare(a.date);});
-
-        var cortLogs=allLogs.filter(function(l){
-          return l.type==='Medication'&&
-            (l.amount||'').toLowerCase().indexOf('cortef')>=0&&
-            new Date(l.date+'T00:00:00')>=cortStart;
-        }).sort(function(a,b){return b.date.localeCompare(a.date);}).slice(0,5);
-
-        var urineLogs=allLogs.filter(function(l){
-          return l.type==='Urine'&&new Date(l.date+'T00:00:00')>=urineStart;
-        }).sort(function(a,b){return a.date.localeCompare(b.date);});
-
-        buildPdf(now,labLogs,cortLogs,urineLogs);
-      })
-      .catch(function(e){
-        showToast('Data fetch failed: '+e.message,'error');
-        console.error('PDF fetch error:',e);
-      });
+        var url=SUPABASE_URL+'/rest/v1/logs?date=gte.'+fromDate+'&order=date.desc,created_at.desc&select=*';
+        fetch(url,{
+          method:'GET',
+          headers:{
+            'apikey':SUPABASE_KEY,
+            'Authorization':'Bearer '+SUPABASE_KEY,
+            'Content-Type':'application/json'
+          }
+        })
+        .then(function(res){
+          showToast('Fetch status: '+res.status,'info');
+          return res.json();
+        })
+        .then(function(allLogs){
+          showToast('Got '+allLogs.length+' rows — building PDF…','info');
+          var labLogs=allLogs.filter(function(l){return l.type==='Labs'&&new Date(l.date+'T00:00:00')>=labStart;}).sort(function(a,b){return b.date.localeCompare(a.date);});
+          var cortLogs=allLogs.filter(function(l){return l.type==='Medication'&&(l.amount||'').toLowerCase().indexOf('cortef')>=0&&new Date(l.date+'T00:00:00')>=cortStart;}).sort(function(a,b){return b.date.localeCompare(a.date);}).slice(0,5);
+          var urineLogs=allLogs.filter(function(l){return l.type==='Urine'&&new Date(l.date+'T00:00:00')>=urineStart;}).sort(function(a,b){return a.date.localeCompare(b.date);});
+          buildPdf(now,labLogs,cortLogs,urineLogs);
+        })
+        .catch(function(e){
+          showToast('Fetch error: '+e.message,'error');
+          console.error('PDF fetch:',e);
+        });
+      }catch(e){
+        showToast('PDF init error: '+e.message,'error');
+        console.error('triggerPdfExport:',e);
+      }
+    },100);
   }
 
   function buildPdf(now,labLogs,cortLogs,urineLogs){
